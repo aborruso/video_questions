@@ -16,9 +16,12 @@ qv() {
         elif [[ "$2" == "save" && -n "$3" ]]; then
           save_file="$3"
           shift 3
+        elif [[ "$2" == "sub" && -n "$3" ]]; then
+          sub_file="$3"
+          shift 3
         else
           echo "Invalid option: -p $2 $3"
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>]"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>] [-p sub <filename>]"
           return 1
         fi
         ;;
@@ -29,7 +32,7 @@ qv() {
           question="$1"
         else
           echo "Too many arguments."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>]"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>] [-p sub <filename>]"
           return 1
         fi
         shift
@@ -64,6 +67,12 @@ qv() {
   if [ -n "$save_file" ]; then
     echo "$content" > "$save_file"
     echo "Content saved to $save_file"
+  fi
+
+  # Save the subtitles to a file if requested
+  if [ -n "$sub_file" ]; then
+    echo "$content" > "$sub_file"
+    echo "Subtitles saved to $sub_file"
   fi
 
   # Escape double quotes in content to avoid YAML issues
