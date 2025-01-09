@@ -13,9 +13,12 @@ qv() {
           language="$3"
           llm_options="-p language ${language}"
           shift 3
+        elif [[ "$2" == "save" && -n "$3" ]]; then
+          save_file="$3"
+          shift 3
         else
           echo "Invalid option: -p $2 $3"
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>]"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>]"
           return 1
         fi
         ;;
@@ -26,7 +29,7 @@ qv() {
           question="$1"
         else
           echo "Too many arguments."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>]"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>]"
           return 1
         fi
         shift
@@ -55,6 +58,12 @@ qv() {
   if [ -z "$content" ]; then
     echo "Failed to retrieve content from the URL."
     return 1
+  fi
+
+  # Save the content to a file if requested
+  if [ -n "$save_file" ]; then
+    echo "$content" > "$save_file"
+    echo "Content saved to $save_file"
   fi
 
   # Escape double quotes in content to avoid YAML issues
