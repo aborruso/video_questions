@@ -2,8 +2,8 @@
 
 qv() {
   # Default values
-  local language="English"
-  local llm_options=""
+  local language="Italian"
+  local llm_options="-p language Italian"
 
   # Manual parsing of arguments
   while [[ $# -gt 0 ]]; do
@@ -61,11 +61,11 @@ qv() {
   content=$(printf '%s' "$content" | sed 's/"/\\"/g')
 
   system="
-  You are a helpful assistant that can answer questions about YouTube videos.
+  Sei un assistente utile che può rispondere a domande sui video di YouTube.
 
-  Write the text in ${language}.
+  Scrivi il testo in ${language}.
 
-  The content:
+  Il contenuto:
   ${content}
 
   defaults:
