@@ -71,9 +71,9 @@ qv() {
     echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
     echo
     echo "Example:"
-    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
-    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
-    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
     return 1
   fi
 
