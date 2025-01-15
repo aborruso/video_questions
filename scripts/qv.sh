@@ -172,12 +172,3 @@ main() {
 }
 
 main "$@"
-
-# Check if the script is being called with arguments
-if [ "$#" -eq 0 ]; then
-  # If no arguments are provided, call the function without arguments to show the usage message
-  qv
-else
-  # Otherwise, pass all arguments to the function
-  qv "$@"
-fi
