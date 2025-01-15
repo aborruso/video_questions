@@ -17,7 +17,7 @@ pip install yt-dlp
 ## Example Usage
 ```bash
 # Example with an Italian culture video
-./scripts/qv.sh 'https://www.youtube.com/watch?v=4UZrsTqkcW4' 'Quali sono i principali temi trattati in questo video?' -p language Italian
+./scripts/qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Quali sono i principali temi trattati in questo video?' -p language Italian
 
 # Example with English subtitles
-./scripts/qv.sh 'https://www.youtube.com/watch?v=4UZrsTqkcW4' 'What are the main topics covered in this video?'
+./scripts/qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
