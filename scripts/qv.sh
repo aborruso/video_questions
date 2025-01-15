@@ -85,11 +85,13 @@ qv() {
   # Escape double quotes in content to avoid YAML issues
   content=$(printf '%s' "$content" | sed 's/"/\\"/g')
 
+  local title=$(yt-dlp -q --skip-download --get-title "$url")
   system="
   Sei un assistente utile che può rispondere a domande sui video di YouTube.
 
   Scrivi il testo in ${language}.
 
+  Il titolo: $title
   Il contenuto:
   ${content}
 
