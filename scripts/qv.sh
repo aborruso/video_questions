@@ -1,9 +1,24 @@
 #!/bin/bash
 
+# Check for required dependencies
+check_dependencies() {
+  local dependencies=("yt-dlp" "curl" "llm")
+  for dep in "${dependencies[@]}"; do
+    if ! command -v "$dep" >/dev/null 2>&1; then
+      echo "Error: $dep is required but not installed."
+      return 1
+    fi
+  done
+  return 0
+}
+
 qv() {
   # Default values
   local language="Italian"
   local llm_options="-p language Italian"
+  local url=""
+  local question=""
+  local sub_file=""
 
   # Manual parsing of arguments
   while [[ $# -gt 0 ]]; do
@@ -44,11 +59,28 @@ qv() {
     esac
   done
 
-  # Check if the required parameters are provided
+  # Check dependencies before proceeding
+  if ! check_dependencies; then
+    return 1
+  fi
+
+  # Validate required parameters
   if [ -z "$url" ] || [ -z "$question" ]; then
     echo "Error: Missing parameters."
+    echo
     echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
-    echo "Example: qv 'https://www.youtube.com/watch?v=example' 'What is this video about?' -p language Italian -sub subtitles.txt"
+    echo
+    echo "Example:"
+    echo "  qv 'https://www.youtube.com/watch?v=example' 'What is this video about?'"
+    echo "  qv 'https://www.youtube.com/watch?v=example' 'What is this video about?' -p language Italian"
+    echo "  qv 'https://www.youtube.com/watch?v=example' 'What is this video about?' -sub subtitles.txt"
+    return 1
+  fi
+
+  # Validate YouTube URL format
+  if [[ ! "$url" =~ ^https://(www\.)?youtube\.com/watch\?v= ]]; then
+    echo "Error: Invalid YouTube URL format."
+    echo "Please provide a full YouTube URL in the format: https://www.youtube.com/watch?v=..."
     return 1
   fi
 
@@ -61,19 +93,35 @@ qv() {
     fi
   fi
 
-  # Fetch the URL content through Jina
+  # Fetch subtitle URL
+  echo "Fetching subtitles for video..."
   local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
+  
   if [ -z "$subtitle_url" ]; then
     echo "Error: Could not fetch subtitle URL."
+    echo "This video might not have English subtitles available."
     return 1
   fi
 
-  local content=$(curl -s "$subtitle_url" | sed '/^$/d' | grep -v '^[0-9]*$' | grep -v '\-->\|\[.*\]' | sed 's/<[^>]*>//g' | tr '\n' ' ')
+  # Download and clean subtitles
+  echo "Downloading and processing subtitles..."
+  local content=$(curl -s "$subtitle_url" | \
+    sed '/^$/d' | \
+    grep -v '^[0-9]*$' | \
+    grep -v '\-->\|\[.*\]' | \
+    sed 's/<[^>]*>//g' | \
+    tr '\n' ' ' | \
+    sed 's/  */ /g')
 
-  # Check if the content was retrieved successfully
+  # Validate content
   if [ -z "$content" ]; then
-    echo "Failed to retrieve content from the URL."
+    echo "Error: Failed to retrieve or process video content."
     return 1
+  fi
+
+  # Check minimum content length
+  if [ ${#content} -lt 100 ]; then
+    echo "Warning: The retrieved content seems unusually short. The results might not be accurate."
   fi
 
   # Save the subtitles to a file if requested
@@ -82,26 +130,48 @@ qv() {
     echo "Subtitles saved to $sub_file"
   fi
 
-  # Escape double quotes in content to avoid YAML issues
-  content=$(printf '%s' "$content" | sed 's/"/\\"/g')
+  # Escape special characters for YAML
+  content=$(printf '%s' "$content" | \
+    sed 's/"/\\"/g' | \
+    sed "s/'/\\'/g" | \
+    sed 's/\\/\\\\/g')
 
   local title=$(yt-dlp -q --skip-download --get-title "$url")
-  system="
-  Sei un assistente utile che può rispondere a domande sui video di YouTube.
+  # Build system prompt with improved formatting
+  system=$(cat <<EOF
+Sei un assistente utile che può rispondere a domande sui video di YouTube.
 
-  Scrivi il testo in ${language}.
+Scrivi il testo in ${language}.
 
-  Il titolo: $title
-  Il contenuto:
-  ${content}
+Il titolo: $title
+Il contenuto:
+${content}
 
-  defaults:
-    language: ${language}
-  "
+defaults:
+  language: ${language}
+EOF
+)
 
-  # Use llm with the fetched content as a system prompt
+  # Process the question with LLM
+  echo "Processing your question..."
   llm prompt "$question" -s "$system" $llm_options
+  
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to process the question."
+    return 1
+  fi
 }
+
+# Main script execution
+main() {
+  if [ "$#" -eq 0 ]; then
+    qv
+  else
+    qv "$@"
+  fi
+}
+
+main "$@"
 
 # Check if the script is being called with arguments
 if [ "$#" -eq 0 ]; then
