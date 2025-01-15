@@ -13,15 +13,19 @@ qv() {
           language="$3"
           llm_options="-p language ${language}"
           shift 3
-        elif [[ "$2" == "save" && -n "$3" ]]; then
-          save_file="$3"
-          shift 3
-        elif [[ "$2" == "sub" && -n "$3" ]]; then
-          sub_file="$3"
-          shift 3
         else
-          echo "Invalid option: -p $2 $3"
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>] [-p sub <filename>]"
+          echo "Invalid option: -p $2"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+          return 1
+        fi
+        ;;
+      -sub)
+        if [[ -n "$2" ]]; then
+          sub_file="$2"
+          shift 2
+        else
+          echo "Error: -sub requires a file path."
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
           return 1
         fi
         ;;
@@ -32,7 +36,7 @@ qv() {
           question="$1"
         else
           echo "Too many arguments."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-p save <filename>] [-p sub <filename>]"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
           return 1
         fi
         shift
@@ -43,9 +47,18 @@ qv() {
   # Check if the required parameters are provided
   if [ -z "$url" ] || [ -z "$question" ]; then
     echo "Error: Missing parameters."
-    echo "Usage: qv <YouTube URL> <Question> [-p language <language>]"
-    echo "Example: qv 'https://www.youtube.com/watch?v=example' 'What is this video about?' -p language Italian"
+    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+    echo "Example: qv 'https://www.youtube.com/watch?v=example' 'What is this video about?' -p language Italian -sub subtitles.txt"
     return 1
+  fi
+
+  # Check if the subtitles file already exists and ask for confirmation to overwrite
+  if [ -n "$sub_file" ] && [ -f "$sub_file" ]; then
+    read -p "File $sub_file already exists. Overwrite? (y/n): " confirm
+    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+      echo "Operation canceled. Subtitles were not saved."
+      return 1
+    fi
   fi
 
   # Fetch the URL content through Jina
@@ -61,12 +74,6 @@ qv() {
   if [ -z "$content" ]; then
     echo "Failed to retrieve content from the URL."
     return 1
-  fi
-
-  # Save the content to a file if requested
-  if [ -n "$save_file" ]; then
-    echo "$content" > "$save_file"
-    echo "Content saved to $save_file"
   fi
 
   # Save the subtitles to a file if requested
