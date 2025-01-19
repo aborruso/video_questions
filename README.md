@@ -25,3 +25,12 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Quali sono i principali tem
 
 # Example with English subtitles
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
+
+# Save subtitles to a file
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
+
+# Just download subtitles without asking questions
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t
+
+# Combine options: save subtitles and ask in Italian
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Qual è il messaggio principale?' -p language Italian -sub my_subtitles.txt
