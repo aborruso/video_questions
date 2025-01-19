@@ -48,11 +48,6 @@ qv() {
       -t|--text-only)
         text_only=true
         shift
-        else
-          echo "Error: -sub requires a file path."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
-          return 1
-        fi
         ;;
       *)
         if [[ -z "$url" ]]; then
