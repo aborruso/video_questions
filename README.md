@@ -5,12 +5,16 @@ This project provides a script to fetch YouTube video subtitles and use them as 
 To use the script, simply run it with the YouTube video URL and the question you want to ask.
 
 ## Requirements
-The script requires the `yt-dlp` and `curl` commands to be installed.
+The script requires the following commands to be installed:
+- `yt-dlp`
+- `curl` 
+- `llm` (LLM command-line tool)
 
 ## Installation
 To install the required commands, run the following commands:
 ```bash
 pip install yt-dlp
+pip install llm
 ```
 `curl` is usually pre-installed on most systems.
 
