@@ -7,7 +7,7 @@ To use the script, simply run it with the YouTube video URL and the question you
 ## Requirements
 The script requires the following commands to be installed:
 - `yt-dlp`
-- `curl` 
+- `curl`
 - `llm` (LLM command-line tool)
 
 ## Installation
@@ -29,7 +29,7 @@ The script supports the following options:
 ## Example Usage
 ```bash
 # Example with an Italian culture video
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Quali sono i principali temi trattati in questo video?' -p language Italian
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?' -p language Italian
 
 # Example with English subtitles
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
