@@ -139,6 +139,12 @@ qv() {
     echo "Warning: The retrieved content seems unusually short. The results might not be accurate."
   fi
 
+  # Only show content in text-only mode
+  if [ "$text_only" = true ]; then
+    echo "$content"
+    return 0
+  fi
+
   # Save the subtitles to a file if requested
   if [ -n "$sub_file" ]; then
     echo "$content" > "$sub_file"
