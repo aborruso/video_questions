@@ -19,6 +19,7 @@ qv() {
   local url=""
   local question=""
   local sub_file=""
+  local text_only=false
 
   # Manual parsing of arguments
   while [[ $# -gt 0 ]]; do
@@ -38,6 +39,15 @@ qv() {
         if [[ -n "$2" ]]; then
           sub_file="$2"
           shift 2
+        else
+          echo "Error: -sub requires a file path."
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+          return 1
+        fi
+        ;;
+      -t|--text-only)
+        text_only=true
+        shift
         else
           echo "Error: -sub requires a file path."
           echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
@@ -65,15 +75,16 @@ qv() {
   fi
 
   # Validate required parameters
-  if [ -z "$url" ] || [ -z "$question" ]; then
+  if [ -z "$url" ] || ([ -z "$question" ] && [ "$text_only" = false ]); then
     echo "Error: Missing parameters."
     echo
-    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--text-only]"
     echo
     echo "Example:"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t  # Solo scarica i sottotitoli"
     return 1
   fi
 
@@ -128,6 +139,12 @@ qv() {
   if [ -n "$sub_file" ]; then
     echo "$content" > "$sub_file"
     echo "Subtitles saved to $sub_file"
+  fi
+
+  # If text-only mode, just output the content and exit
+  if [ "$text_only" = true ]; then
+    echo "$content"
+    return 0
   fi
 
   # Escape special characters for YAML
