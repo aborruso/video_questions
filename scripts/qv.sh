@@ -84,9 +84,11 @@ qv() {
   fi
 
   # Validate YouTube URL format
-  if [[ ! "$url" =~ ^https://(www\.)?youtube\.com/watch\?v= ]]; then
+  if [[ ! "$url" =~ ^https://(www\.)?youtube\.(com/watch\?v=|be/) ]]; then
     echo "Error: Invalid YouTube URL format."
-    echo "Please provide a full YouTube URL in the format: https://www.youtube.com/watch?v=..."
+    echo "Please provide a YouTube URL in one of these formats:"
+    echo "  https://www.youtube.com/watch?v=..."
+    echo "  https://youtu.be/..."
     return 1
   fi
 
