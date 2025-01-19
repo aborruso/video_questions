@@ -176,9 +176,9 @@ defaults:
   language: ${language}
 EOF
 
-  # Process the question with LLM using the temp file
+  # Process the question with LLM using stdin
   echo "Processing your question..."
-  llm prompt "$question" -s "$(cat "$temp_file")" $llm_options
+  cat "$temp_file" | llm prompt "$question" $llm_options
   
   # Clean up
   rm -f "$temp_file"
