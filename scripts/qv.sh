@@ -85,13 +85,18 @@ qv() {
 
   # Validate YouTube URL format
   if [[ ! "$url" =~ ^https://(www\.)?youtube\.(com/watch\?v=[a-zA-Z0-9_-]{11}|be/[a-zA-Z0-9_-]{11})(\?.*)?$ ]]; then
-    echo "Error: Invalid YouTube URL format."
-    echo "Please provide a YouTube URL in one of these formats:"
-    echo "  https://www.youtube.com/watch?v=VIDEO_ID"
-    echo "  https://youtu.be/VIDEO_ID"
-    echo "Note: VIDEO_ID must be exactly 11 characters long"
-    echo "URL provided: $url"
-    return 1
+    # Try to extract video ID from youtu.be format
+    if [[ "$url" =~ ^https://youtu\.be/([a-zA-Z0-9_-]{11}) ]]; then
+      url="https://www.youtube.com/watch?v=${BASH_REMATCH[1]}"
+    else
+      echo "Error: Invalid YouTube URL format."
+      echo "Please provide a YouTube URL in one of these formats:"
+      echo "  https://www.youtube.com/watch?v=VIDEO_ID"
+      echo "  https://youtu.be/VIDEO_ID"
+      echo "Note: VIDEO_ID must be exactly 11 characters long"
+      echo "URL provided: $url"
+      return 1
+    fi
   fi
 
   # Check if the subtitles file already exists and ask for confirmation to overwrite
