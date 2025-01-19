@@ -151,6 +151,9 @@ qv() {
     return 0
   fi
 
+  # Create a temporary file for the system prompt
+  local temp_file=$(mktemp)
+  
   # Escape special characters for YAML
   content=$(printf '%s' "$content" | \
     sed 's/"/\\"/g' | \
@@ -158,8 +161,9 @@ qv() {
     sed 's/\\/\\\\/g')
 
   local title=$(yt-dlp -q --skip-download --get-title "$url")
+  
   # Build system prompt with improved formatting
-  system=$(cat <<EOF
+  cat <<EOF > "$temp_file"
 Sei un assistente utile che può rispondere a domande sui video di YouTube.
 
 Scrivi il testo in ${language}.
@@ -171,11 +175,13 @@ ${content}
 defaults:
   language: ${language}
 EOF
-)
 
-  # Process the question with LLM
+  # Process the question with LLM using the temp file
   echo "Processing your question..."
-  llm prompt "$question" -s "$system" $llm_options
+  llm prompt "$question" -s "$(cat "$temp_file")" $llm_options
+  
+  # Clean up
+  rm -f "$temp_file"
   
   if [ $? -ne 0 ]; then
     echo "Error: Failed to process the question."
