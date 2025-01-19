@@ -18,6 +18,14 @@ pip install llm
 ```
 `curl` is usually pre-installed on most systems.
 
+## Options
+
+The script supports the following options:
+
+- `-p language <language>`: Specify the language for the response (e.g., "Italian", "English")
+- `-sub <filename>`: Save the extracted subtitles to a file
+- `-t` or `--text-only`: Only download and display subtitles without asking questions
+
 ## Example Usage
 ```bash
 # Example with an Italian culture video
