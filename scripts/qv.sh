@@ -20,10 +20,21 @@ qv() {
   local question=""
   local sub_file=""
   local text_only=false
+  local template=""
 
   # Manual parsing of arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      -t|--template)
+        if [[ -n "$2" ]]; then
+          template="$2"
+          shift 2
+        else
+          echo "Error: -t/--template requires a template name."
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t <template>]"
+          return 1
+        fi
+        ;;
       -p)
         if [[ "$2" == "language" && -n "$3" ]]; then
           language="$3"
@@ -70,16 +81,17 @@ qv() {
   fi
 
   # Validate required parameters
-  if [ -z "$url" ] || ([ -z "$question" ] && [ "$text_only" = false ]); then
+  if [ -z "$url" ] || ([ -z "$question" ] && [ "$text_only" = false ] && [ -z "$template" ]); then
     echo "Error: Missing parameters."
     echo
-    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--text-only]"
+    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only]"
     echo
     echo "Example:"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t  # Solo scarica i sottotitoli"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t andy  # Usa il template 'andy'"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Solo scarica i sottotitoli"
     return 1
   fi
 
@@ -184,7 +196,11 @@ EOF
 
   # Process the question with LLM using stdin
   echo "Processing your question..."
-  cat "$temp_file" | llm prompt "$question" $llm_options
+  if [ -n "$template" ]; then
+    cat "$temp_file" | llm prompt "$question" $llm_options -t "$template"
+  else
+    cat "$temp_file" | llm prompt "$question" $llm_options
+  fi
   
   # Clean up
   rm -f "$temp_file"
