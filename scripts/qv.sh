@@ -170,7 +170,6 @@ qv() {
         if [ -n "$video_id" ]; then
             echo "$content" > "$cache_file"
         fi
-    )
 
   # Validate content
   if [ -z "$content" ]; then
