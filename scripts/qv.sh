@@ -184,6 +184,7 @@ qv() {
     echo "$content" > "$sub_file"
     echo "Subtitles saved to $sub_file"
   fi
+  }
 
   # Create a temporary file for the system prompt
   local temp_file=$(mktemp)
