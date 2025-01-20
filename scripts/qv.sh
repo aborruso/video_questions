@@ -120,19 +120,36 @@ qv() {
     fi
   fi
 
-  # Fetch subtitle URL
-  echo "Fetching subtitles for video..."
-  local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
+  # Extract video ID
+  local video_id=$(echo "$url" | grep -oP '(?<=v=)[^&]+')
   
-  if [ -z "$subtitle_url" ]; then
-    echo "Error: Could not fetch subtitle URL."
-    echo "This video might not have English subtitles available."
-    return 1
-  fi
+  # Create qv directory if it doesn't exist
+  local qv_dir="$HOME/qv"
+  mkdir -p "$qv_dir"
+  
+  # Clean up old files (older than 7 days)
+  find "$qv_dir" -type f -mtime +7 -exec rm {} \;
+  
+  # Check if subtitles already exist
+  local subtitle_file="$qv_dir/${video_id}.txt"
+  
+  if [ -f "$subtitle_file" ]; then
+    echo "Using cached subtitles..."
+    local content=$(cat "$subtitle_file")
+  else
+    # Fetch subtitle URL
+    echo "Fetching subtitles for video..."
+    local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
+    
+    if [ -z "$subtitle_url" ]; then
+      echo "Error: Could not fetch subtitle URL."
+      echo "This video might not have English subtitles available."
+      return 1
+    fi
 
-  # Download and clean subtitles
-  echo "Downloading and processing subtitles..."
-  local content=$(curl -s "$subtitle_url" | \
+    # Download and clean subtitles
+    echo "Downloading and processing subtitles..."
+    local content=$(curl -s "$subtitle_url" | \
     sed '/^$/d' | \
     grep -v '^[0-9]*$' | \
     grep -v '\-->\|\[.*\]' | \
@@ -157,7 +174,12 @@ qv() {
     return 0
   fi
 
-  # Save the subtitles to a file if requested
+  # Save the subtitles to cache file if not already exists
+  if [ ! -f "$subtitle_file" ]; then
+    echo "$content" > "$subtitle_file"
+  fi
+
+  # Save the subtitles to a specific file if requested
   if [ -n "$sub_file" ]; then
     echo "$content" > "$sub_file"
     echo "Subtitles saved to $sub_file"
