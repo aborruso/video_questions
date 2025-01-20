@@ -161,7 +161,7 @@ qv() {
         local content=$(curl -s "$subtitle_url" | \
     sed '/^$/d' | \
     grep -v '^[0-9]*$' | \
-    grep -v '\-->\|\[.*\]' | \
+    grep -v -e '-->' -e '\[.*\]' | \
     sed 's/<[^>]*>//g' | \
     tr '\n' ' ' | \
     sed 's/  */ /g')
