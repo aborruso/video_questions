@@ -177,6 +177,50 @@ qv() {
     return 0
   fi
 
+  # Only proceed with LLM processing if not in text-only mode
+  if [ "$text_only" = false ]; then
+    # Create a temporary file for the system prompt
+    local temp_file=$(mktemp)
+    
+    # Escape special characters for YAML
+    content=$(printf '%s' "$content" | \
+      sed 's/"/\\"/g' | \
+      sed "s/'/\\'/g" | \
+      sed 's/\\/\\\\/g')
+
+    local title=$(yt-dlp -q --skip-download --get-title "$url")
+    
+    # Build system prompt with improved formatting
+    cat <<EOF > "$temp_file"
+Sei un assistente utile che può rispondere a domande sui video di YouTube.
+
+Scrivi il testo in ${language}.
+
+Il titolo: $title
+Il contenuto:
+${content}
+
+defaults:
+  language: ${language}
+EOF
+
+    # Process the question with LLM using stdin
+    echo "Processing your question..."
+    if [ -n "$template" ]; then
+      cat "$temp_file" | llm prompt "$question" $llm_options -t "$template"
+    else
+      cat "$temp_file" | llm prompt "$question" $llm_options
+    fi
+    
+    # Clean up
+    rm -f "$temp_file"
+    
+    if [ $? -ne 0 ]; then
+      echo "Error: Failed to process the question."
+      return 1
+    fi
+  fi
+
 
   # Save to cache if not already cached
   if [ ! -f "$cache_file" ]; then
@@ -188,17 +232,6 @@ qv() {
     echo "$content" > "$sub_file"
     echo "Subtitles saved to $sub_file"
   fi
-
-    # Save to cache if not already cached
-    if [ ! -f "$cache_file" ]; then
-      echo "$content" > "$cache_file"
-    fi
-
-    # Save the subtitles to a specific file if requested
-    if [ -n "$sub_file" ]; then
-      echo "$content" > "$sub_file"
-      echo "Subtitles saved to $sub_file"
-    fi
 
     # Only proceed with LLM processing if not in text-only mode
     if [ "$text_only" = false ]; then
