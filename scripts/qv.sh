@@ -163,12 +163,6 @@ qv() {
     echo "Subtitles saved to $sub_file"
   fi
 
-  # If text-only mode, just output the content and exit
-  if [ "$text_only" = true ]; then
-    echo "$content"
-    return 0
-  fi
-
   # Create a temporary file for the system prompt
   local temp_file=$(mktemp)
   
