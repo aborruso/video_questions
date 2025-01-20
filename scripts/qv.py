@@ -121,13 +121,8 @@ defaults:
 
                 # Process with LLM
                 print("Processing your question...")
-                subprocess.run(
-                    ["cat", temp_file.name],
-                    stdout=subprocess.PIPE,
-                    check=True
-                ).stdout.pipe(
-                    subprocess.run(llm_cmd, check=True)
-                )
+                with open(temp_file.name, 'r') as f:
+                    subprocess.run(llm_cmd, stdin=f, check=True)
                 
         except subprocess.CalledProcessError as e:
             print(f"Error: Failed to process question - {str(e)}")
