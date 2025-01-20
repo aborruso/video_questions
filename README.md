@@ -11,12 +11,33 @@ The script requires the following commands to be installed:
 - `llm` (LLM command-line tool)
 
 ## Installation
-To install the required commands, run the following commands:
+To install the required commands:
+
+1. Install yt-dlp:
 ```bash
 pip install yt-dlp
+```
+
+2. Install llm CLI tool:
+```bash
 pip install llm
 ```
-`curl` is usually pre-installed on most systems.
+
+3. Install curl (if not already installed):
+```bash
+# On Debian/Ubuntu
+sudo apt install curl
+
+# On macOS (with Homebrew)
+brew install curl
+```
+
+4. Verify installations:
+```bash
+yt-dlp --version
+llm --version
+curl --version
+```
 
 ## Options
 
@@ -24,12 +45,12 @@ The script supports the following options:
 
 - `-p language <language>`: Specify the language for the response (e.g., "Italian", "English")
 - `-sub <filename>`: Save the extracted subtitles to a file
-- `-t` or `--template`: Use a specific template for the LLM response
-- `--text-only`: Only download and display subtitles without asking questions
+- `-t` or `--template <template>`: Use a specific template for the LLM response
+- `--text-only`: Only download and display subtitles without processing with LLM
 
 ## Example Usage
 ```bash
-# Example with an Italian culture video
+# Example with Italian language response
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?' -p language Italian
 
 # Example with English subtitles
