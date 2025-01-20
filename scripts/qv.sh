@@ -120,29 +120,9 @@ qv() {
     fi
   fi
 
-  # Get video ID for cache
-  local video_id=$(echo "$url" | grep -oP '(?:v=|be/)[a-zA-Z0-9_-]{11}' | cut -d'=' -f2 | cut -d'/' -f2)
-  if [ -z "$video_id" ]; then
-    echo "Error: Could not extract video ID from URL"
-    return 1
-  fi
-
-  # Create cache directory if it doesn't exist
-  local cache_dir="$HOME/.qv_cache"
-  mkdir -p "$cache_dir"
-  local cache_file="$cache_dir/${video_id}.txt"
-
-  # Clean up old cache files (older than 7 days)
-  find "$cache_dir" -type f -mtime +7 -exec rm {} \;
-
-  # Check cache first
-  if [ -f "$cache_file" ]; then
-    echo "Using cached subtitles..."
-    local content=$(cat "$cache_file")
-  else
-    # Fetch subtitle URL
-    echo "Fetching subtitles for video..."
-    local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
+  # Fetch subtitle URL
+  echo "Fetching subtitles for video..."
+  local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
     
     if [ -z "$subtitle_url" ]; then
       echo "Error: Could not fetch subtitle URL."
@@ -175,11 +155,6 @@ qv() {
   if [ "$text_only" = true ]; then
     echo "$content"
     return 0
-  fi
-
-  # Save to cache if not already cached
-  if [ ! -f "$cache_file" ]; then
-    echo "$content" > "$cache_file"
   fi
 
   # Save the subtitles to a specific file if requested
