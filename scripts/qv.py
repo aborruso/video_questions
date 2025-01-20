@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import re
 import os
+import time
 from typing import Optional
 
 class QVProcessor:
@@ -36,9 +37,52 @@ class QVProcessor:
         )
         return re.match(youtube_regex, url) is not None
 
+    def get_cache_dir(self) -> str:
+        """Get cache directory path"""
+        cache_dir = os.path.expanduser("~/.qv_cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        return cache_dir
+
+    def get_video_id(self, url: str) -> str:
+        """Extract video ID from YouTube URL"""
+        video_id = None
+        # Try standard YouTube URL format
+        match = re.search(r'(?:v=|be/)([a-zA-Z0-9_-]{11})', url)
+        if match:
+            video_id = match.group(1)
+        return video_id
+
+    def clean_cache(self) -> None:
+        """Clean up old cache files"""
+        cache_dir = self.get_cache_dir()
+        now = time.time()
+        for filename in os.listdir(cache_dir):
+            filepath = os.path.join(cache_dir, filename)
+            if os.path.isfile(filepath):
+                # Delete files older than 7 days
+                if now - os.path.getmtime(filepath) > 7 * 86400:
+                    os.remove(filepath)
+
     def get_subtitles(self, url: str) -> str:
         """Fetch and process subtitles from YouTube video"""
         try:
+            # Get video ID for cache
+            video_id = self.get_video_id(url)
+            if not video_id:
+                raise ValueError("Could not extract video ID from URL")
+
+            # Check cache first
+            cache_dir = self.get_cache_dir()
+            cache_file = os.path.join(cache_dir, f"{video_id}.txt")
+            
+            if os.path.exists(cache_file):
+                print("Using cached subtitles...")
+                with open(cache_file, 'r') as f:
+                    return f.read()
+
+            # Clean up old cache files
+            self.clean_cache()
+
             # Get subtitle URL
             result = subprocess.run(
                 ["yt-dlp", "-q", "--skip-download", "--convert-subs", "srt",
@@ -63,6 +107,10 @@ class QVProcessor:
             
             # Clean subtitles
             content = curl_result.stdout
+
+            # Save to cache
+            with open(cache_file, 'w') as f:
+                f.write(content)
             lines = [
                 line for line in content.splitlines()
                 if line.strip() and 
