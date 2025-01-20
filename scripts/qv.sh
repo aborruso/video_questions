@@ -130,15 +130,47 @@ qv() {
       return 1
     fi
 
-    # Download and clean subtitles
-    echo "Downloading and processing subtitles..."
-    local content=$(curl -s "$subtitle_url" | \
+    # Cache functions
+    get_cache_dir() {
+        echo "${HOME}/.qv_cache"
+        mkdir -p "${HOME}/.qv_cache" 2>/dev/null
+    }
+
+    get_video_id() {
+        echo "$1" | sed -nE \
+            's/.*(?:v=|be\/)([a-zA-Z0-9_-]{11}).*/\1/p' | \
+            head -n 1
+    }
+
+    clean_cache() {
+        find "$(get_cache_dir)" -type f -mtime +7 -delete
+    }
+
+    # Check cache first
+    clean_cache
+    local video_id=$(get_video_id "$url")
+    local cache_dir=$(get_cache_dir)
+    local cache_file="${cache_dir}/${video_id}.txt"
+    
+    if [ -s "$cache_file" ]; then
+        echo "Using cached subtitles..."
+        local content=$(cat "$cache_file")
+    else
+        # Download and clean subtitles
+        echo "Downloading and processing subtitles..."
+        local content=$(curl -s "$subtitle_url" | \
     sed '/^$/d' | \
     grep -v '^[0-9]*$' | \
     grep -v '\-->\|\[.*\]' | \
     sed 's/<[^>]*>//g' | \
     tr '\n' ' ' | \
     sed 's/  */ /g')
+
+        # Save to cache if we have a valid video ID
+        if [ -n "$video_id" ]; then
+            echo "$content" > "$cache_file"
+        fi
+    )
 
   # Validate content
   if [ -z "$content" ]; then
