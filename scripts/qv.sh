@@ -184,9 +184,10 @@ qv() {
     echo "$content" > "$sub_file"
     echo "Subtitles saved to $sub_file"
   fi
-  }
 
-  # Create a temporary file for the system prompt
+  # Only proceed with LLM processing if not in text-only mode
+  if [ "$text_only" = false ]; then
+    # Create a temporary file for the system prompt
   local temp_file=$(mktemp)
   
   # Escape special characters for YAML
@@ -226,6 +227,7 @@ EOF
     echo "Error: Failed to process the question."
     return 1
   fi
+  fi  # End of text-only check
 }
 
 # Main script execution
