@@ -138,8 +138,10 @@ qv() {
 
     get_video_id() {
         echo "$1" | sed -nE \
-            's/.*(?:v=|be\/)([a-zA-Z0-9_-]{11}).*/\1/p' | \
-            head -n 1
+            's/.*[&?]v=([a-zA-Z0-9_-]{11}).*/\1/p' | \
+            head -n 1 || \
+        echo "$1" | sed -nE \
+            's/.*youtu\.be\/([a-zA-Z0-9_-]{11}).*/\1/p'
     }
 
     clean_cache() {
