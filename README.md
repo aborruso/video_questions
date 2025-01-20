@@ -24,7 +24,8 @@ The script supports the following options:
 
 - `-p language <language>`: Specify the language for the response (e.g., "Italian", "English")
 - `-sub <filename>`: Save the extracted subtitles to a file
-- `-t` or `--text-only`: Only download and display subtitles without asking questions
+- `-t` or `--template`: Use a specific template for the LLM response
+- `--text-only`: Only download and display subtitles without asking questions
 
 ## Example Usage
 ```bash
@@ -37,8 +38,11 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics co
 # Save subtitles to a file
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
 
+# Use a specific template for the response
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t andy
+
 # Just download subtitles without asking questions
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
 
 # Combine options: save subtitles and ask in Italian
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Qual è il messaggio principale?' -p language Italian -sub my_subtitles.txt
