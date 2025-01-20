@@ -178,8 +178,8 @@ def main():
     )
     parser.add_argument('url', help="YouTube video URL")
     parser.add_argument('question', nargs='?', help="Question to ask about the video")
-    parser.add_argument('-p', '--language', metavar='LANG', 
-                       help="Response language (default: Italian)")
+    parser.add_argument('-p', nargs=2, metavar=('PARAM', 'VALUE'),
+                       help="LLM parameter (e.g., 'language English')")
     parser.add_argument('-sub', metavar='FILE', 
                        help="Save subtitles to file")
     parser.add_argument('-t', '--template', 
@@ -191,9 +191,13 @@ def main():
 
     processor = QVProcessor()
     
-    if args.language:
-        processor.language = args.language
-        processor.llm_options = ["-p", "language", args.language]
+    if args.p:
+        if args.p[0] == 'language':
+            processor.language = args.p[1]
+            processor.llm_options = ["-p", "language", args.p[1]]
+        else:
+            print(f"Error: Unsupported parameter '{args.p[0]}'")
+            sys.exit(1)
     
     if args.sub:
         processor.sub_file = args.sub
