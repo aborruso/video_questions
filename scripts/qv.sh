@@ -188,18 +188,18 @@ qv() {
   # Only proceed with LLM processing if not in text-only mode
   if [ "$text_only" = false ]; then
     # Create a temporary file for the system prompt
-  local temp_file=$(mktemp)
-  
-  # Escape special characters for YAML
-  content=$(printf '%s' "$content" | \
-    sed 's/"/\\"/g' | \
-    sed "s/'/\\'/g" | \
-    sed 's/\\/\\\\/g')
+    local temp_file=$(mktemp)
+    
+    # Escape special characters for YAML
+    content=$(printf '%s' "$content" | \
+      sed 's/"/\\"/g' | \
+      sed "s/'/\\'/g" | \
+      sed 's/\\/\\\\/g')
 
-  local title=$(yt-dlp -q --skip-download --get-title "$url")
-  
-  # Build system prompt with improved formatting
-  cat <<EOF > "$temp_file"
+    local title=$(yt-dlp -q --skip-download --get-title "$url")
+    
+    # Build system prompt with improved formatting
+    cat <<EOF > "$temp_file"
 Sei un assistente utile che può rispondere a domande sui video di YouTube.
 
 Scrivi il testo in ${language}.
@@ -212,21 +212,21 @@ defaults:
   language: ${language}
 EOF
 
-  # Process the question with LLM using stdin
-  echo "Processing your question..."
-  if [ -n "$template" ]; then
-    cat "$temp_file" | llm prompt "$question" $llm_options -t "$template"
-  else
-    cat "$temp_file" | llm prompt "$question" $llm_options
-  fi
-  
-  # Clean up
-  rm -f "$temp_file"
-  
-  if [ $? -ne 0 ]; then
-    echo "Error: Failed to process the question."
-    return 1
-  fi
+    # Process the question with LLM using stdin
+    echo "Processing your question..."
+    if [ -n "$template" ]; then
+      cat "$temp_file" | llm prompt "$question" $llm_options -t "$template"
+    else
+      cat "$temp_file" | llm prompt "$question" $llm_options
+    fi
+    
+    # Clean up
+    rm -f "$temp_file"
+    
+    if [ $? -ne 0 ]; then
+      echo "Error: Failed to process the question."
+      return 1
+    fi
   fi  # End of text-only check
 }
 
