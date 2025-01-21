@@ -110,7 +110,7 @@ qv() {
   # Fetch subtitle URL
   echo "Fetching subtitles for video..."
   local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
-    
+
     if [ -z "$subtitle_url" ]; then
       echo "Error: Could not fetch subtitle URL."
       echo "This video might not have English subtitles available."
@@ -160,7 +160,7 @@ qv() {
   if [ "$text_only" = false ]; then
     # Create a temporary file for the system prompt
     local temp_file=$(mktemp)
-    
+
     # Escape special characters for YAML
     content=$(printf '%s' "$content" | \
       sed 's/"/\\"/g' | \
@@ -168,7 +168,7 @@ qv() {
       sed 's/\\/\\\\/g')
 
     local title=$(yt-dlp -q --skip-download --get-title "$url")
-    
+
     # Build system prompt with improved formatting
     cat <<EOF > "$temp_file"
 You are a helpful assistant that can answer questions about YouTube videos.
@@ -185,10 +185,10 @@ EOF
     else
       cat "$temp_file" | llm prompt "$question"
     fi
-    
+
     # Clean up
     rm -f "$temp_file"
-    
+
     if [ $? -ne 0 ]; then
       echo "Error: Failed to process the question."
       return 1
