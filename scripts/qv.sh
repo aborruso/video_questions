@@ -36,13 +36,9 @@ qv() {
         fi
         ;;
       -tk)
-        if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+        if [[ -n "$2" ]]; then
           llm_options="$llm_options --max-tokens $2"
           shift 2
-        else
-          echo "Error: -tk requires a number to set the maximum tokens."
-          echo "Example: -tk 500"
-          return 1
         fi
         ;;
       -p)
@@ -210,9 +206,9 @@ EOF
     # Process the question with LLM using stdin
     echo "Processing your question..."
     if [ -n "$template" ]; then
-      cat "$temp_file" | llm prompt "$question" $llm_options --max-tokens $2 -t "$template"
+      cat "$temp_file" | llm prompt "$question" $llm_options -t "$template"
     else
-      cat "$temp_file" | llm prompt "$question" $llm_options --max-tokens $2
+      cat "$temp_file" | llm prompt "$question" $llm_options
     fi
     
     # Clean up
