@@ -60,7 +60,7 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics co
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
 
 # Use a specific template for the response
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t andy
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy
 
 # Just download subtitles without asking questions
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
