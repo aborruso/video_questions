@@ -46,6 +46,8 @@ The script supports the following options:
 - `-sub <filename>`: Save the extracted subtitles to a file
 - `-t` or `--template <template>`: Use a specific template for the LLM response
 - `--text-only`: Only download and display subtitles without processing with LLM
+- `-p language <language>`: Specify the response language (e.g., "Italian", "English")
+- `--debug`: Show first 3 lines of content sent to LLM for debugging
 
 ## Example Usage
 ```bash
@@ -64,3 +66,9 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
 
 # Combine options: save subtitles and ask questions
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -sub my_subtitles.txt
+
+# Specify response language
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Qual è il messaggio principale?' -p language Italian
+
+# Debug mode to see input to LLM
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
