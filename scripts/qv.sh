@@ -20,6 +20,7 @@ qv() {
   local text_only=false
   local template=""
   local language=""
+  local debug=false
 
   # Manual parsing of arguments
   while [[ $# -gt 0 ]]; do
@@ -58,6 +59,10 @@ qv() {
         text_only=true
         shift
         ;;
+      --debug)
+        debug=true
+        shift
+        ;;
       *)
         if [[ -z "$url" ]]; then
           url="$1"
@@ -82,10 +87,10 @@ qv() {
   if [ -z "$url" ] || ([ -z "$question" ] && [ "$text_only" = false ] && [ -z "$template" ]); then
     echo "Error: Missing parameters."
     echo
-    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only]"
+    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only] [--debug]"
     echo
     echo "Example:"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian --debug"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy"
@@ -191,6 +196,13 @@ EOF
 
     # Process the question with LLM using stdin
     echo "Processing your question..."
+    
+    if [ "$debug" = true ]; then
+      echo -e "\nDEBUG: First 10 lines sent to LLM:"
+      head -n 10 "$temp_file"
+      echo -e "\n"
+    fi
+    
     if [ -n "$template" ]; then
       cat "$temp_file" | llm prompt "$question" -t "$template"
     else
