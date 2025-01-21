@@ -90,7 +90,7 @@ qv() {
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t andy  # Usa il template 'andy'"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy  # Usa il template 'andy'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Solo scarica i sottotitoli"
     return 1
   fi
