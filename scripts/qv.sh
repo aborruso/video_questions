@@ -14,8 +14,6 @@ check_dependencies() {
 
 qv() {
   # Default values
-  local language=""
-  local llm_options=""
   local url=""
   local question=""
   local sub_file=""
@@ -32,17 +30,6 @@ qv() {
         else
           echo "Error: -t/--template requires a template name."
           echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t <template>]"
-          return 1
-        fi
-        ;;
-      -p)
-        if [[ "$2" == "language" && -n "$3" ]]; then
-          language="$3"
-          llm_options=""
-          shift 3
-        else
-          echo "Invalid option: -p $2"
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
           return 1
         fi
         ;;
@@ -84,7 +71,7 @@ qv() {
   if [ -z "$url" ] || ([ -z "$question" ] && [ "$text_only" = false ] && [ -z "$template" ]); then
     echo "Error: Missing parameters."
     echo
-    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only]"
+    echo "Usage: qv <YouTube URL> <Question> [-sub <filename>] [-t|--template <template>] [--text-only]"
     echo
     echo "Example:"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"

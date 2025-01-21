@@ -43,15 +43,12 @@ curl --version
 
 The script supports the following options:
 
-- `-p language <language>`: Specify the language for the response (e.g., "Italian", "English")
 - `-sub <filename>`: Save the extracted subtitles to a file
 - `-t` or `--template <template>`: Use a specific template for the LLM response
 - `--text-only`: Only download and display subtitles without processing with LLM
 
 ## Example Usage
 ```bash
-# Example with Italian language response
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?' -p language Italian
 
 # Example with English subtitles
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
@@ -65,5 +62,5 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t and
 # Just download subtitles without asking questions
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
 
-# Combine options: save subtitles and ask in Italian
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Qual è il messaggio principale?' -p language Italian -sub my_subtitles.txt
+# Combine options: save subtitles and ask questions
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -sub my_subtitles.txt
