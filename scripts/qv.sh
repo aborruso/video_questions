@@ -14,8 +14,8 @@ check_dependencies() {
 
 qv() {
   # Default values
-  local language="Italian"
-  local llm_options="-p language Italian"
+  local language=""
+  local llm_options=""
   local url=""
   local question=""
   local sub_file=""
@@ -88,7 +88,7 @@ qv() {
     echo
     echo "Example:"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy  # Usa il template 'andy'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Solo scarica i sottotitoli"
@@ -184,16 +184,11 @@ qv() {
     
     # Build system prompt with improved formatting
     cat <<EOF > "$temp_file"
-Sei un assistente utile che può rispondere a domande sui video di YouTube.
+You are a helpful assistant that can answer questions about YouTube videos.
 
-Scrivi il testo in ${language}.
-
-Il titolo: $title
-Il contenuto:
+Video title: $title
+Content:
 ${content}
-
-defaults:
-  language: ${language}
 EOF
 
     # Process the question with LLM using stdin
