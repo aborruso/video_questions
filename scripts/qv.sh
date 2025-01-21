@@ -35,6 +35,16 @@ qv() {
           return 1
         fi
         ;;
+      -tk)
+        if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+          llm_options="$llm_options -m $2"
+          shift 2
+        else
+          echo "Error: -tk requires a number to set the maximum tokens."
+          echo "Example: -tk 500"
+          return 1
+        fi
+        ;;
       -p)
         if [[ "$2" == "language" && -n "$3" ]]; then
           language="$3"
@@ -92,6 +102,7 @@ qv() {
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' -t andy  # Usa il template 'andy'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Solo scarica i sottotitoli"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -tk 500  # Set max tokens to 500"
     return 1
   fi
 
