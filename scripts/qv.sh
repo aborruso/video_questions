@@ -54,7 +54,7 @@ qv() {
           question="$1"
         else
           echo "Too many arguments."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+          echo "Usage: qv <YouTube URL> <Question> [-sub <filename>]"
           return 1
         fi
         shift
