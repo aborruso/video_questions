@@ -29,7 +29,7 @@ qv() {
           shift 2
         else
           echo "Error: -t/--template requires a template name."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t <template>]"
+          echo "Usage: qv <YouTube URL> <Question> [-sub <filename>] [-t <template>]"
           return 1
         fi
         ;;
@@ -39,7 +39,7 @@ qv() {
           shift 2
         else
           echo "Error: -sub requires a file path."
-          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+          echo "Usage: qv <YouTube URL> <Question> [-sub <filename>]"
           return 1
         fi
         ;;
