@@ -19,10 +19,21 @@ qv() {
   local sub_file=""
   local text_only=false
   local template=""
+  local language=""
 
   # Manual parsing of arguments
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      -p)
+        if [[ "$2" == "language" && -n "$3" ]]; then
+          language="$3"
+          shift 3
+        else
+          echo "Invalid option: -p $2"
+          echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>]"
+          return 1
+        fi
+        ;;
       -t|--template)
         if [[ -n "$2" ]]; then
           template="$2"
@@ -71,10 +82,10 @@ qv() {
   if [ -z "$url" ] || ([ -z "$question" ] && [ "$text_only" = false ] && [ -z "$template" ]); then
     echo "Error: Missing parameters."
     echo
-    echo "Usage: qv <YouTube URL> <Question> [-sub <filename>] [-t|--template <template>] [--text-only]"
+    echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only]"
     echo
     echo "Example:"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy"
@@ -172,7 +183,7 @@ qv() {
     # Build system prompt with improved formatting
     cat <<EOF > "$temp_file"
 You are a helpful assistant that can answer questions about YouTube videos.
-
+${language:+Reply to me in $language\n}
 Video title: $title
 Content:
 ${content}
