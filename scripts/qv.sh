@@ -38,7 +38,7 @@ qv() {
       -p)
         if [[ "$2" == "language" && -n "$3" ]]; then
           language="$3"
-          llm_options="-o language ${language}"
+          llm_options=""
           shift 3
         else
           echo "Invalid option: -p $2"
@@ -87,10 +87,10 @@ qv() {
     echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only]"
     echo
     echo "Example:"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language italiano"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy  # Usa il template 'andy'"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy"
     echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Solo scarica i sottotitoli"
     return 1
   fi
@@ -194,9 +194,9 @@ EOF
     # Process the question with LLM using stdin
     echo "Processing your question..."
     if [ -n "$template" ]; then
-      cat "$temp_file" | llm prompt "$question" -o language ${language} -t "$template"
+      cat "$temp_file" | llm prompt "$question" -t "$template"
     else
-      cat "$temp_file" | llm prompt "$question" -o language ${language}
+      cat "$temp_file" | llm prompt "$question"
     fi
     
     # Clean up
