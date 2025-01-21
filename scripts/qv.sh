@@ -38,7 +38,7 @@ qv() {
       -p)
         if [[ "$2" == "language" && -n "$3" ]]; then
           language="$3"
-          llm_options="--set-option language=${language}"
+          llm_options="--option language=${language}"
           shift 3
         else
           echo "Invalid option: -p $2"
@@ -194,9 +194,9 @@ EOF
     # Process the question with LLM using stdin
     echo "Processing your question..."
     if [ -n "$template" ]; then
-      cat "$temp_file" | llm prompt "$question" --set-option language=${language} -t "$template"
+      cat "$temp_file" | llm prompt "$question" --option language=${language} -t "$template"
     else
-      cat "$temp_file" | llm prompt "$question" --set-option language=${language}
+      cat "$temp_file" | llm prompt "$question" --option language=${language}
     fi
     
     # Clean up
