@@ -154,12 +154,6 @@ qv() {
     echo "Warning: The retrieved content seems unusually short. The results might not be accurate."
   fi
 
-  # Only show content in text-only mode
-  if [ "$text_only" = true ]; then
-    echo "$content"
-    return 0
-  fi
-
   # Save the subtitles to a specific file if requested
   if [ -n "$sub_file" ]; then
     echo "$content" > "$sub_file"
@@ -186,13 +180,21 @@ qv() {
     local title=$(yt-dlp -q --skip-download --get-title "$url")
 
     # Build system prompt with improved formatting
-    cat <<EOF > "$temp_file"
+    if [ "$debug" = true ]; then
+      cat <<EOF > "$temp_file"
 You are a helpful assistant that can answer questions about YouTube videos.
 ${language:+Reply to me in $language\n}
 Video title: $title
 Content:
 ${content}
 EOF
+    else
+      cat <<EOF > "$temp_file"
+You are a helpful assistant that can answer questions about YouTube videos.
+${language:+Reply to me in $language\n}
+${content}
+EOF
+    fi
 
     # Process the question with LLM using stdin
     echo "Processing your question..."
