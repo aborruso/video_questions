@@ -68,7 +68,7 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -sub my_subtitles.txt
 
 # Specify response language
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Qual è il messaggio principale?' -p language Italian
+qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -p language Italian
 
 # Debug mode to see input to LLM
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
