@@ -196,13 +196,13 @@ EOF
 
     # Process the question with LLM using stdin
     echo "Processing your question..."
-    
+
     if [ "$debug" = true ]; then
-      echo -e "\nDEBUG: First 10 lines sent to LLM:"
-      head -n 10 "$temp_file"
+      echo -e "\nDEBUG: First 3 lines sent to LLM:"
+      head -n 3 "$temp_file"
       echo -e "\n"
     fi
-    
+
     if [ -n "$template" ]; then
       cat "$temp_file" | llm prompt "$question" -t "$template"
     else
