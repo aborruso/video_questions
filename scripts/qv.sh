@@ -2,7 +2,7 @@
 
 # Check for required dependencies
 check_dependencies() {
-  local dependencies=("yt-dlp" "curl" "llm")
+  local dependencies=("yt-dlp" "curl" "llm" "jq")
   for dep in "${dependencies[@]}"; do
     if ! command -v "$dep" >/dev/null 2>&1; then
       echo "Error: $dep is required but not installed."
