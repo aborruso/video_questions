@@ -258,8 +258,14 @@ EOF
 
 # Main script execution
 main() {
-  if [ "$#" -eq 0 ]; then
-    qv
+  if [ "$#" -eq 1 ]; then
+    echo "No question provided. Defaulting to --text-only mode."
+    text_only=true
+    qv "$1" --text-only
+  elif [ "$#" -eq 0 ]; then
+    echo "Error: Missing parameters. Defaulting to --text-only mode."
+    text_only=true
+    qv --text-only
   else
     qv "$@"
   fi
