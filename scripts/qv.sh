@@ -125,13 +125,21 @@ qv() {
 
   # Fetch subtitle URL
   echo "Fetching subtitles for video..."
-  local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url")
+  local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url" 2>/dev/null)
 
-    if [ -z "$subtitle_url" ]; then
-      echo "Error: Could not fetch subtitle URL."
-      echo "This video might not have English subtitles available."
-      return 1
-    fi
+  # If English subtitles are not available, try auto-generated subtitles in any language
+  if [ -z "$subtitle_url" ]; then
+    echo "English subtitles not found, trying auto-generated subtitles..."
+
+    # Try to get auto-generated subtitles in any available language
+    subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-auto-sub --print "automatic_captions.*.*.url" "$url" 2>/dev/null | head -n 1)
+  fi
+
+  if [ -z "$subtitle_url" ]; then
+    echo "Error: Could not fetch subtitle URL."
+    echo "This video might not have subtitles or auto-generated captions available."
+    return 1
+  fi
 
     # Download and clean subtitles
     echo "Downloading and processing subtitles..."
