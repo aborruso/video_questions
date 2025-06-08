@@ -90,15 +90,16 @@ qv() {
     echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only] [--debug]"
     echo
     echo "Example:"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian --debug"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Solo scarica i sottotitoli"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'  # Ask a question about the video"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy  # Use a specific template"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian  # Get the answer in Italian"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Output subtitles to stdout"
+    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt  # Save subtitles to a file"
     return 1
   fi
 
   # Validate YouTube URL format
+  # Ensure the provided URL is a valid YouTube link or convert short URLs to standard format
   if [[ ! "$url" =~ ^https://(www\.)?youtube\.(com/watch\?v=[a-zA-Z0-9_-]{11}|be/[a-zA-Z0-9_-]{11})(\?.*)?$ ]]; then
     # Try to extract video ID from youtu.be format
     if [[ "$url" =~ ^https://youtu\.be/([a-zA-Z0-9_-]{11}) ]]; then
@@ -114,7 +115,8 @@ qv() {
     fi
   fi
 
-  # Check if the subtitles file already exists and ask for confirmation to overwrite
+  # Check if the subtitles file already exists
+  # If the user specifies a file for subtitles, confirm before overwriting an existing file
   if [ -n "$sub_file" ] && [ -f "$sub_file" ]; then
     read -p "File $sub_file already exists. Overwrite? (y/n): " confirm
     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -124,11 +126,13 @@ qv() {
   fi
 
   # Detect original audio language
+  # Use yt-dlp to identify the original audio language of the video
   echo "Detecting original audio language..."
   local original_lang
   original_lang=$(yt-dlp -j "$url" | jq -r '.automatic_captions | keys[] | select(test("-orig"))' | sed 's/-orig//')
 
   # Try to fetch subtitles in the original language
+  # Attempt to download subtitles in the detected original language
   local subtitle_url
   if [ -n "$original_lang" ]; then
     echo "Original audio language detected: $original_lang"
@@ -136,27 +140,32 @@ qv() {
   fi
 
   # If no subtitles in the original language, fallback to English
+  # Attempt to download English subtitles if the original language subtitles are unavailable
   if [ -z "$subtitle_url" ]; then
     echo "Subtitles in original language not found, trying English..."
     subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url" 2>/dev/null)
   fi
 
   # If no subtitles at all, try auto-generated subtitles in any available language
+  # As a last resort, attempt to download auto-generated subtitles in any available language
   if [ -z "$subtitle_url" ]; then
     echo "English subtitles not found, trying auto-generated subtitles in any available language..."
     subtitle_url=$(yt-dlp -j "$url" | jq -r '.automatic_captions | to_entries[] | .value[] | select(.ext == "vtt") | .url' | head -n 1)
   fi
 
   # If still no subtitles, return an error
+  # Exit with an error if no subtitles could be fetched
   if [ -z "$subtitle_url" ]; then
     echo "Error: Could not fetch subtitle URL."
     echo "This video might not have subtitles or auto-generated captions available."
     return 1
   fi
 
-    # Download and clean subtitles
-    echo "Downloading and processing subtitles..."
-    local content=$(curl -s "$subtitle_url" | \
+  # Download and clean subtitles
+  # Fetch the subtitles from the URL and clean the content for further processing
+  echo "Downloading and processing subtitles..."
+  local content
+  content=$(curl -s "$subtitle_url" | \
     sed '/^$/d' | \
     grep -v '^[0-9]*$' | \
     grep -v -e '-->' -e '\[.*\]' | \
@@ -165,12 +174,14 @@ qv() {
     sed 's/  */ /g')
 
   # Validate content
+  # Ensure the fetched subtitles content is not empty
   if [ -z "$content" ]; then
     echo "Error: Failed to retrieve or process video content."
     return 1
   fi
 
   # Check minimum content length
+  # Warn the user if the subtitles content is unusually short
   if [ ${#content} -lt 100 ]; then
     echo "Warning: The retrieved content seems unusually short. The results might not be accurate."
   fi
@@ -190,15 +201,18 @@ qv() {
   # Only proceed with LLM processing if not in text-only mode
   if [ "$text_only" = false ]; then
     # Create a temporary file for the system prompt
-    local temp_file=$(mktemp)
+    local temp_file
+    temp_file=$(mktemp)
+
+    # Get the video title
+    local title
+    title=$(yt-dlp -q --skip-download --get-title "$url")
 
     # Escape special characters for YAML
     content=$(printf '%s' "$content" | \
       sed 's/"/\\"/g' | \
       sed "s/'/\\'/g" | \
       sed 's/\\/\\\\/g')
-
-    local title=$(yt-dlp -q --skip-download --get-title "$url")
 
     # Build system prompt with improved formatting
     if [ "$debug" = true ]; then
