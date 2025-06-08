@@ -15,7 +15,7 @@ The script requires the following commands to be installed:
 - `llm` (LLM command-line tool, [GitHub repository](https://llm.datasette.io/en/stable/))
 - `jq` ([GitHub repository](https://github.com/stedolan/jq))
 
-## LLM Datasette CLI
+### LLM Datasette CLI
 
 The `llm` command-line tool is the core of this program. It allows you to interact with language models directly from the terminal. Below are some key features and links for more information:
 
