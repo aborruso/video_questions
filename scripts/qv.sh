@@ -123,18 +123,31 @@ qv() {
     fi
   fi
 
-  # Fetch subtitle URL
-  echo "Fetching subtitles for video..."
-  local subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url" 2>/dev/null)
+  # Detect original audio language
+  echo "Detecting original audio language..."
+  local original_lang
+  original_lang=$(yt-dlp -j "$url" | jq -r '.automatic_captions | keys[] | select(test("-orig"))' | sed 's/-orig//')
 
-  # If English subtitles are not available, try auto-generated subtitles in any language
-  if [ -z "$subtitle_url" ]; then
-    echo "English subtitles not found, trying auto-generated subtitles..."
-
-    # Try to get auto-generated subtitles in any available language
-    subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-auto-sub --print "automatic_captions.*.*.url" "$url" 2>/dev/null | head -n 1)
+  # Try to fetch subtitles in the original language
+  local subtitle_url
+  if [ -n "$original_lang" ]; then
+    echo "Original audio language detected: $original_lang"
+    subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-auto-sub --sub-langs "$original_lang" --print "requested_subtitles.$original_lang.url" "$url" 2>/dev/null)
   fi
 
+  # If no subtitles in the original language, fallback to English
+  if [ -z "$subtitle_url" ]; then
+    echo "Subtitles in original language not found, trying English..."
+    subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url" 2>/dev/null)
+  fi
+
+  # If no subtitles at all, try auto-generated subtitles in any available language
+  if [ -z "$subtitle_url" ]; then
+    echo "English subtitles not found, trying auto-generated subtitles in any available language..."
+    subtitle_url=$(yt-dlp -j "$url" | jq -r '.automatic_captions | to_entries[] | .value[] | select(.ext == "vtt") | .url' | head -n 1)
+  fi
+
+  # If still no subtitles, return an error
   if [ -z "$subtitle_url" ]; then
     echo "Error: Could not fetch subtitle URL."
     echo "This video might not have subtitles or auto-generated captions available."
