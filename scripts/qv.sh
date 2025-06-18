@@ -115,6 +115,30 @@ qv() {
     fi
   fi
 
+  # Extract Video ID for caching
+  local video_id
+  video_id=$(yt-dlp --get-id "$url" 2>/dev/null)
+  if [[ -z "$video_id" ]]; then
+    echo "Error: Could not extract video ID from URL '$url' for caching purposes."
+    echo "Please ensure yt-dlp is working correctly and the URL is valid."
+    return 1
+  fi
+
+  local cache_dir="${TMPDIR:-/tmp}/qv_cache"
+  mkdir -p "$cache_dir" # Ensure cache directory exists
+  local cache_file="${cache_dir}/${video_id}.txt"
+  local content="" # Initialize content
+
+  # Try to load from cache
+  if [ -f "$cache_file" ] && [ -r "$cache_file" ]; then
+    echo "Using cached subtitles from $cache_file"
+    content=$(cat "$cache_file")
+    # If cache is empty, treat as not found so it redownloads
+    if [ -z "$content" ]; then
+        echo "Cached file '$cache_file' is empty. Will attempt to re-download."
+    fi
+  fi
+
   # Check if the subtitles file already exists
   # If the user specifies a file for subtitles, confirm before overwriting an existing file
   if [ -n "$sub_file" ] && [ -f "$sub_file" ]; then
@@ -125,58 +149,69 @@ qv() {
     fi
   fi
 
-  # Detect original audio language
-  # Use yt-dlp to identify the original audio language of the video
-  echo "Detecting original audio language..."
-  local original_lang
-  original_lang=$(yt-dlp -j "$url" | jq -r '.automatic_captions | keys[] | select(test("-orig"))' | sed 's/-orig//')
+  # If content is not loaded from cache (or cache was empty), then download
+  if [ -z "$content" ]; then
+    echo "Cached subtitles not found or empty. Downloading..."
 
-  # Try to fetch subtitles in the original language
-  # Attempt to download subtitles in the detected original language
-  local subtitle_url
-  if [ -n "$original_lang" ]; then
-    echo "Original audio language detected: $original_lang"
-    subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-auto-sub --sub-langs "$original_lang" --print "requested_subtitles.$original_lang.url" "$url" 2>/dev/null)
+    # Detect original audio language
+    # Use yt-dlp to identify the original audio language of the video
+    echo "Detecting original audio language..."
+    local original_lang
+    original_lang=$(yt-dlp -j "$url" | jq -r '.automatic_captions | keys[] | select(test("-orig"))' | sed 's/-orig//')
+
+    # Try to fetch subtitles in the original language
+    # Attempt to download subtitles in the detected original language
+    local subtitle_url
+    if [ -n "$original_lang" ]; then
+      echo "Original audio language detected: $original_lang"
+      subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-auto-sub --sub-langs "$original_lang" --print "requested_subtitles.$original_lang.url" "$url" 2>/dev/null)
+    fi
+
+    # If no subtitles in the original language, fallback to English
+    # Attempt to download English subtitles if the original language subtitles are unavailable
+    if [ -z "$subtitle_url" ]; then
+      echo "Subtitles in original language not found, trying English..."
+      subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url" 2>/dev/null)
+    fi
+
+    # If no subtitles at all, try auto-generated subtitles in any available language
+    # As a last resort, attempt to download auto-generated subtitles in any available language
+    if [ -z "$subtitle_url" ]; then
+      echo "English subtitles not found, trying auto-generated subtitles in any available language..."
+      subtitle_url=$(yt-dlp -j "$url" | jq -r '.automatic_captions | to_entries[] | .value[] | select(.ext == "vtt") | .url' | head -n 1)
+    fi
+
+    # If still no subtitles, return an error
+    # Exit with an error if no subtitles could be fetched
+    if [ -z "$subtitle_url" ]; then
+      echo "Error: Could not fetch subtitle URL."
+      echo "This video might not have subtitles or auto-generated captions available."
+      return 1
+    fi
+
+    # Download and clean subtitles
+    # Fetch the subtitles from the URL and clean the content for further processing
+    echo "Downloading and processing subtitles..."
+    # 'content' variable is already declared, assign to it
+    content=$(curl -s "$subtitle_url" | \
+      sed '/^$/d' | \
+      grep -v '^[0-9]*$' | \
+      grep -v -e '-->' -e '\[.*\]' | \
+      sed 's/<[^>]*>//g' | \
+      tr '\n' ' ' | \
+      sed 's/  */ /g')
+
+    # If content was successfully fetched, save it to cache
+    if [ -n "$content" ]; then
+      echo "$content" > "$cache_file"
+      echo "Subtitles cached to $cache_file"
+    fi
   fi
-
-  # If no subtitles in the original language, fallback to English
-  # Attempt to download English subtitles if the original language subtitles are unavailable
-  if [ -z "$subtitle_url" ]; then
-    echo "Subtitles in original language not found, trying English..."
-    subtitle_url=$(yt-dlp -q --skip-download --convert-subs srt --write-sub --sub-langs "en" --write-auto-sub --print "requested_subtitles.en.url" "$url" 2>/dev/null)
-  fi
-
-  # If no subtitles at all, try auto-generated subtitles in any available language
-  # As a last resort, attempt to download auto-generated subtitles in any available language
-  if [ -z "$subtitle_url" ]; then
-    echo "English subtitles not found, trying auto-generated subtitles in any available language..."
-    subtitle_url=$(yt-dlp -j "$url" | jq -r '.automatic_captions | to_entries[] | .value[] | select(.ext == "vtt") | .url' | head -n 1)
-  fi
-
-  # If still no subtitles, return an error
-  # Exit with an error if no subtitles could be fetched
-  if [ -z "$subtitle_url" ]; then
-    echo "Error: Could not fetch subtitle URL."
-    echo "This video might not have subtitles or auto-generated captions available."
-    return 1
-  fi
-
-  # Download and clean subtitles
-  # Fetch the subtitles from the URL and clean the content for further processing
-  echo "Downloading and processing subtitles..."
-  local content
-  content=$(curl -s "$subtitle_url" | \
-    sed '/^$/d' | \
-    grep -v '^[0-9]*$' | \
-    grep -v -e '-->' -e '\[.*\]' | \
-    sed 's/<[^>]*>//g' | \
-    tr '\n' ' ' | \
-    sed 's/  */ /g')
 
   # Validate content
   # Ensure the fetched subtitles content is not empty
   if [ -z "$content" ]; then
-    echo "Error: Failed to retrieve or process video content."
+    echo "Error: Failed to retrieve or process video content (from cache or download)."
     return 1
   fi
 
