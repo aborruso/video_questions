@@ -253,7 +253,7 @@ qv() {
     if [ "$debug" = true ]; then
       cat <<EOF > "$temp_file"
 You are a helpful assistant that can answer questions about YouTube videos.
-${language:+Reply to me in $language\n}
+${language:+Reply to me in $language}
 Video title: $title
 Content:
 ${content}
@@ -261,7 +261,7 @@ EOF
     else
       cat <<EOF > "$temp_file"
 You are a helpful assistant that can answer questions about YouTube videos.
-${language:+Reply to me in $language\n}
+${language:+Reply to me in $language}
 ${content}
 EOF
     fi
