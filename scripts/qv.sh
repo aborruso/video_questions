@@ -126,6 +126,10 @@ qv() {
 
   local cache_dir="${TMPDIR:-/tmp}/qv_cache"
   mkdir -p "$cache_dir" # Ensure cache directory exists
+
+  # Clean up cache files older than 60 days
+  find "$cache_dir" -type f -mtime +60 -delete
+
   local cache_file="${cache_dir}/${video_id}.txt"
   local content="" # Initialize content
 
