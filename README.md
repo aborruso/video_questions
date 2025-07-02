@@ -7,7 +7,7 @@ This project provides a script to fetch YouTube video subtitles and use them as 
 The basic syntax for the script is:
 
 ```bash
-./scripts/qv.sh <YouTube URL> [<Question>] [OPTIONS]
+qv.sh <YouTube URL> [<Question>] [OPTIONS]
 ```
 
 ### Arguments
