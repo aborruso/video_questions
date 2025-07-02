@@ -23,7 +23,7 @@ The `llm` command-line tool is the core of this program. It allows you to intera
 - **Documentation**: Detailed usage instructions and examples are available in the repository.
 - **Installation**: Install via pip using the command `pip install llm`.
 
-The `llm` tool is used in this script to process subtitles and generate responses based on the provided questions and templates.
+The `llm` tool is used in this script to process subtitles and generate responses based on the provided questions and [templates](https://llm.datasette.io/en/stable/templates.html).
 
 ## Options
 
@@ -44,7 +44,7 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics co
 # Save subtitles to a file
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
 
-# Use a specific template for the response
+# Use a specific llm template for the response (https://llm.datasette.io/en/stable/templates.html)
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy
 
 # Just output the subtitles in stdout without asking questions
