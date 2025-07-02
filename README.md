@@ -2,12 +2,60 @@
 
 This project provides a script to fetch YouTube video subtitles and use them as a prompt for a language model.
 
+## Installation
+
+You have two main options to install and use this script.
+
+### Option 1: Clone the Repository (Recommended)
+
+This is the best option if you want to easily receive updates.
+
+1. Clone the repository to your local machine:
+
+    ```bash
+    git clone https://github.com/aborruso/video_questions.git
+    cd video_questions
+    ```
+
+2. You can run the script directly from the `scripts` directory:
+    ```bash
+    ./scripts/qv.sh <YouTube URL> ...
+    ```
+
+### Option 2: Standalone Script
+
+If you prefer to use `qv.sh` as a standalone command from anywhere on your system.
+
+1. Download the script:
+
+    ```bash
+    curl -o qv.sh -L https://raw.githubusercontent.com/aborruso/video_questions/main/scripts/qv.sh
+    ```
+
+2. Make it executable:
+
+    ```bash
+    chmod +x qv.sh
+    ```
+
+3. Move it to a directory in your system's `PATH`. A common choice is `/usr/local/bin`:
+
+    ```bash
+    sudo mv qv.sh /usr/local/bin/
+    ```
+
+4. Now you can run the script from any directory:
+
+    ```bash
+    qv.sh <YouTube URL> ...
+    ```
+
 ## Usage
 
 The basic syntax for the script is:
 
 ```bash
-qv.sh <YouTube URL> [<Question>] [OPTIONS]
+./scripts/qv.sh <YouTube URL> [<Question>] [OPTIONS]
 ```
 
 ### Arguments
@@ -68,4 +116,3 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' 
 # Debug mode to see input to LLM
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
 ```
-
