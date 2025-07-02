@@ -6,7 +6,7 @@ This project provides a script to fetch YouTube video subtitles and use them as 
 
 You have two main options to install and use this script.
 
-### Option 1: Clone the Repository (Recommended)
+### Option 1: Clone the Repository
 
 This is the best option if you want to easily receive updates.
 
