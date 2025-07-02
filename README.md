@@ -4,7 +4,16 @@ This project provides a script to fetch YouTube video subtitles and use them as 
 
 ## Usage
 
-To use the script, simply run it with the YouTube video URL and the question you want to ask.
+The basic syntax for the script is:
+
+```bash
+./scripts/qv.sh <YouTube URL> [<Question>] [OPTIONS]
+```
+
+### Arguments
+
+- `<YouTube URL>`: (Required) The full URL of the YouTube video.
+- `<Question>`: (Optional) The question to ask about the video. If omitted, the script only outputs the subtitles (same as `--text-only`).
 
 ## Requirements
 
@@ -29,11 +38,11 @@ The `llm` tool is used in this script to process subtitles and generate response
 
 The script supports the following options:
 
-- `-sub <filename>`: Save the extracted subtitles to a file
-- `-t` or `--template <template>`: Use a specific template for the LLM response
-- `--text-only`: Only download and display subtitles without processing with LLM
-- `-p language <language>`: Specify the response language (e.g., "Italian", "English")
-- `--debug`: Show first 3 lines of content sent to LLM for debugging
+- `-sub <filename>`: Save the extracted subtitles to a file.
+- `-t, --template <template>`: Use a specific template for the LLM response.
+- `--text-only`: Only download and display subtitles without processing with LLM. If you provide only a URL without a question, this mode is activated automatically.
+- `-p language <language>`: Specify the response language (e.g., "Italian", "English").
+- `--debug`: Show first 3 lines of content sent to LLM for debugging.
 
 ## Example Usage
 
@@ -58,4 +67,5 @@ qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' 
 
 # Debug mode to see input to LLM
 qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
+```
 
