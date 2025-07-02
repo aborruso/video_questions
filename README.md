@@ -20,7 +20,7 @@ The script requires the following commands to be installed:
 The `llm` command-line tool is the core of this program. It allows you to interact with language models directly from the terminal. Below are some key features and links for more information:
 
 - **GitHub Repository**: [https://github.com/simonw/llm](https://github.com/simonw/llm)
-- **Documentation**: Detailed usage instructions and examples are available in the repository.
+- **Documentation**: Detailed usage instructions and examples are available [here](https://llm.datasette.io/en/stable/).
 - **Installation**: Install via pip using the command `pip install llm`.
 
 The `llm` tool is used in this script to process subtitles and generate responses based on the provided questions and [templates](https://llm.datasette.io/en/stable/templates.html).
