@@ -47,7 +47,7 @@
 ### 4.4. Input Validation and Error Handling
 *   **Description:** Ensures the tool is robust and user-friendly by validating inputs and checking for dependencies.
 *   **Features:**
-    *   **Dependency Check:** Verifies that all required command-line tools (`yt-dlp`, `curl`, `llm`, `jq`) are installed before execution.
+    *   **Dependency Check:** Verifies that all required command-line tools (`yt-dlp`, `curl`, `llm`, `jq`, `make`) are installed before execution.
     *   **URL Validation:** Accepts standard (`youtube.com/watch?v=...`), short (`youtu.be/...`), and shorts (`youtube.com/shorts/...`) YouTube URLs and normalizes them.
     *   **Clear Usage Instructions:** Provides a detailed help message with examples if the user provides incorrect or insufficient arguments.
 

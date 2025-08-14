@@ -4,11 +4,26 @@ This project provides a script to fetch YouTube video subtitles and use them as 
 
 ## Installation
 
-You have two main options to install and use this script.
+You have three main options to install and use this script.
 
-### Option 1: Clone the Repository
+### Option 1: Using Make (Recommended)
 
-This is the best option if you want to easily receive updates.
+This is the easiest and recommended way to install the script.
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/aborruso/video_questions.git
+    cd video_questions
+    ```
+2.  Install the script using `make`:
+    ```bash
+    sudo make install
+    ```
+    This will copy the script to `/usr/local/bin` and make it executable.
+
+### Option 2: Clone the Repository
+
+This is a good option if you want to easily receive updates and run the script from the repository folder.
 
 1. Clone the repository to your local machine:
 
@@ -22,7 +37,7 @@ This is the best option if you want to easily receive updates.
     ./scripts/qv.sh <YouTube URL> ...
     ```
 
-### Option 2: Standalone Script
+### Option 3: Standalone Script
 
 If you prefer to use `qv.sh` as a standalone command from anywhere on your system.
 
