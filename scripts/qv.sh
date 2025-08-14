@@ -283,12 +283,18 @@ EOF
       echo -e "\nDEBUG: First 3 lines sent to LLM:"
       head -n 3 "$temp_file"
       echo -e "\n"
+      echo "DEBUG: Executing LLM command:"
+      set -x
     fi
 
     if [ -n "$template" ]; then
       cat "$temp_file" | llm prompt "$question" -t "$template"
     else
       cat "$temp_file" | llm prompt "$question"
+    fi
+
+    if [ "$debug" = true ]; then
+      set +x
     fi
 
     # Clean up
