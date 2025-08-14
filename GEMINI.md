@@ -4,7 +4,7 @@ This project is a command-line tool named **QV** that allows users to ask questi
 
 The primary technologies used are:
 *   **Shell Scripting (Bash):** The main entry point is a shell script (`scripts/qv.sh`).
-*   **Python:** A helper script (`scripts/qv.py`) is used for processing the subtitles.
+
 *   **yt-dlp:** A command-line program to download video subtitles from YouTube.
 *   **llm:** A command-line tool for interacting with large language models.
 *   **jq:** A command-line JSON processor.
@@ -41,7 +41,7 @@ Based on the existing files, the following conventions are in place:
 
 *   **Language:** All documentation, comments, and other text-based content should be written in English.
 *   **Shell Scripting:** The main logic is contained in `scripts/qv.sh`. It is well-documented with comments and usage instructions.
-*   **Python Scripting:** A helper Python script `scripts/qv.py` is used for subtitle processing.
+
 *   **Documentation:**
     *   `README.md`: Provides a general overview and installation instructions.
     *   `PRD.md`: A Product Requirements Document outlines the project's goals, features, and target audience.
