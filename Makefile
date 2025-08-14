@@ -5,14 +5,23 @@ BINDIR = $(PREFIX)/bin
 
 .PHONY: install uninstall check_dependencies help
 
-install: check_dependencies
+install:
+	@make check_dependencies
 	@echo "Installing qv to $(BINDIR)..."
-	@install -m 755 scripts/qv.sh $(BINDIR)/qv
+	@if [ -w "$(BINDIR)" ]; then \
+		install -m 755 scripts/qv.sh $(BINDIR)/qv; \
+	else \
+		sudo install -m 755 scripts/qv.sh $(BINDIR)/qv; \
+	fi
 	@echo "qv installed successfully."
 
 uninstall:
 	@echo "Uninstalling qv from $(BINDIR)..."
-	@rm -f $(BINDIR)/qv
+	@if [ -w "$(BINDIR)" ]; then \
+		rm -f $(BINDIR)/qv; \
+	else \
+		sudo rm -f $(BINDIR)/qv; \
+	fi
 	@echo "qv uninstalled successfully."
 
 check_dependencies:
