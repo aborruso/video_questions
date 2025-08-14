@@ -55,7 +55,7 @@ qv() {
           return 1
         fi
         ;;
-      -t|--text-only)
+      --text-only)
         text_only=true
         shift
         ;;
@@ -311,12 +311,7 @@ EOF
 main() {
   if [ "$#" -eq 1 ]; then
     echo "No question provided. Defaulting to --text-only mode."
-    text_only=true
     qv "$1" --text-only
-  elif [ "$#" -eq 0 ]; then
-    echo "Error: Missing parameters. Defaulting to --text-only mode."
-    text_only=true
-    qv --text-only
   else
     qv "$@"
   fi
