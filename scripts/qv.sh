@@ -98,8 +98,8 @@ qv() {
     return 1
   fi
 
-  # Gestione URL shorts
-  # Se il formato è https://youtube.com/shorts/VIDEO_ID, lo converto in https://www.youtube.com/watch?v=VIDEO_ID
+  # Handle short URLs
+  # If the format is https://youtube.com/shorts/VIDEO_ID, convert it to https://www.youtube.com/watch?v=VIDEO_ID
   if [[ "$url" =~ ^https://(www\.)?youtube\.com/shorts/([a-zA-Z0-9_-]{11}) ]]; then
     url="https://www.youtube.com/watch?v=${BASH_REMATCH[2]}"
   fi
