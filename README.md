@@ -65,6 +65,20 @@ If you prefer to use `qv.sh` as a standalone command from anywhere on your syste
     qv.sh <YouTube URL> ...
     ```
 
+#### Verify the script's integrity (Optional but recommended)
+
+To ensure that the script you downloaded has not been tampered with, you can verify its SHA256 checksum.
+
+1.  Download the checksum file:
+    ```bash
+    curl -o qv.sh.sha256 -L https://raw.githubusercontent.com/aborruso/video_questions/main/qv.sh.sha256
+    ```
+2.  Verify the checksum:
+    ```bash
+    sha256sum -c qv.sh.sha256
+    ```
+    If the verification is successful, you will see the message: `qv.sh: OK`.
+
 ## Usage
 
 The basic syntax for the script is:
