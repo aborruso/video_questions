@@ -2,6 +2,7 @@
 
 ## 2025-08-14
 
+- **Fixed Makefile**: Improved the `Makefile` to correctly handle `sudo` and dependencies.
 - **Added Makefile**: Created a `Makefile` to simplify installation, uninstallation, and dependency checking.
 - **Updated documentation**: Updated `README.md` and `PRD.md` to reflect the new `Makefile`.
 - **Improved argument handling**: The script now has more robust argument parsing and a more detailed help message.
