@@ -62,7 +62,7 @@ If you prefer to use `qv.sh` as a standalone command from anywhere on your syste
 4. Now you can run the script from any directory:
 
     ```bash
-    qv.sh <YouTube URL> ...
+    qv <YouTube URL> ...
     ```
 
 #### Verify the script's integrity (Optional but recommended)
@@ -84,7 +84,7 @@ To ensure that the script you downloaded has not been tampered with, you can ver
 The basic syntax for the script is:
 
 ```bash
-qv.sh <YouTube URL> [<Question>] [OPTIONS]
+qv <YouTube URL> [<Question>] [OPTIONS]
 ```
 
 ### Arguments
@@ -125,23 +125,23 @@ The script supports the following options:
 
 ```bash
 # Example with English subtitles
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
 
 # Save subtitles to a file
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
 
 # Use a specific llm template for the response (https://llm.datasette.io/en/stable/templates.html)
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy
 
 # Just output the subtitles in stdout without asking questions
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
 
 # Combine options: save subtitles and ask questions
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -sub my_subtitles.txt
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -sub my_subtitles.txt
 
 # Specify response language
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -p language French
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -p language French
 
 # Debug mode to see input to LLM
-qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
+qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
 ```
