@@ -45,6 +45,6 @@ Based on the existing files, the following conventions are in place:
 *   **Documentation:**
     *   `README.md`: Provides a general overview and installation instructions.
     *   `PRD.md`: A Product Requirements Document outlines the project's goals, features, and target audience.
-    *   `idee.md`: A document containing ideas for future enhancements.
+    *   `ideas.md`: A document containing ideas for future enhancements.
     *   `LOG.md`: A log of important decisions and project progress.
 *   **Git:** The project uses Git for version control. A `.gitignore` file is present to exclude unnecessary files.
