@@ -288,9 +288,9 @@ EOF
     fi
 
     if [ -n "$template" ]; then
-      cat "$temp_file" | llm prompt "$question" -t "$template"
+      cat "$temp_file" | llm -t "$template" "$question"
     else
-      cat "$temp_file" | llm prompt "$question"
+      cat "$temp_file" | llm "$question"
     fi
 
     if [ "$debug" = true ]; then
