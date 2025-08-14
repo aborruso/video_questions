@@ -137,12 +137,17 @@ qv() {
   find "$cache_dir" -type f -mtime +60 -delete
 
   local cache_file="${cache_dir}/${video_id}.txt"
+  local title_cache_file="${cache_dir}/${video_id}.title.txt"
   local content="" # Initialize content
+  local title=""
 
   # Try to load from cache
   if [ -f "$cache_file" ] && [ -r "$cache_file" ]; then
     echo "Using cached subtitles from $cache_file"
     content=$(cat "$cache_file")
+    if [ -f "$title_cache_file" ] && [ -r "$title_cache_file" ]; then
+      title=$(cat "$title_cache_file")
+    fi
     # If cache is empty, treat as not found so it redownloads
     if [ -z "$content" ]; then
         echo "Cached file '$cache_file' is empty. Will attempt to re-download."
@@ -249,9 +254,14 @@ qv() {
     local temp_file
     temp_file=$(mktemp)
 
-    # Get the video title
-    local title
-    title=$(yt-dlp -q --skip-download --get-title "$url")
+    # Get the video title if not already loaded from cache
+    if [ -z "$title" ]; then
+      title=$(yt-dlp -q --skip-download --get-title "$url")
+      # Cache the title for future use
+      if [ -n "$title" ]; then
+        echo "$title" > "$title_cache_file"
+      fi
+    fi
 
     # Escape special characters for YAML
     content=$(printf '%s' "$content" | \
