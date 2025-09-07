@@ -10,7 +10,7 @@ You have three main options to install and use this script.
 
 This is the easiest and recommended way to install the script.
 
-1.  Clone the repository:
+1. Clone the repository:
 
     ```bash
     git clone https://github.com/aborruso/video_questions.git
@@ -18,7 +18,7 @@ This is the easiest and recommended way to install the script.
     ```
 
 
-2.  Install the script using `make`:
+2. Install the script using `make`:
 
     ```bash
     sudo make install
@@ -37,13 +37,11 @@ This is a good option if you want to easily receive updates and run the script f
     cd video_questions
     ```
 
-
 2. You can run the script directly from the `scripts` directory:
 
     ```bash
     ./scripts/qv.sh <YouTube URL> ...
     ```
-
 
 ### Option 3: Standalone Script
 
@@ -55,13 +53,11 @@ If you prefer to use `qv.sh` as a standalone command from anywhere on your syste
     curl -o qv.sh -L https://raw.githubusercontent.com/aborruso/video_questions/main/scripts/qv.sh
     ```
 
-
 2. Make it executable:
 
     ```bash
     chmod +x qv.sh
     ```
-
 
 3. Move it to a directory in your system's `PATH`. A common choice is `/usr/local/bin`:
 
@@ -69,26 +65,23 @@ If you prefer to use `qv.sh` as a standalone command from anywhere on your syste
     sudo mv qv.sh /usr/local/bin/
     ```
 
-
 4. Now you can run the script from any directory:
 
     ```bash
     qv <YouTube URL> ...
     ```
 
-
 #### Verify the script's integrity (Optional but recommended)
 
 To ensure that the script you downloaded has not been tampered with, you can verify its SHA256 checksum.
 
-1.  Download the checksum file:
+1. Download the checksum file:
 
     ```bash
     curl -o qv.sh.sha256 -L https://raw.githubusercontent.com/aborruso/video_questions/main/qv.sh.sha256
     ```
 
-
-2.  Verify the checksum:
+2. Verify the checksum:
 
     ```bash
     sha256sum -c qv.sh.sha256
@@ -103,7 +96,6 @@ The basic syntax for the script is:
 ```bash
 qv <YouTube URL> [<Question>] [OPTIONS]
 ```
-
 
 ### Arguments
 
