@@ -17,7 +17,6 @@ This is the easiest and recommended way to install the script.
     cd video_questions
     ```
 
-
 2. Install the script using `make`:
 
     ```bash
@@ -142,7 +141,6 @@ The script supports the following options:
 - `--debug`: Show first 3 lines of content sent to LLM for debugging.
 
 ## Example Usage
-
 
 ```bash
 # Example with English subtitles
