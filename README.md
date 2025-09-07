@@ -11,11 +11,13 @@ You have three main options to install and use this script.
 This is the easiest and recommended way to install the script.
 
 1.  Clone the repository:
+
     ```bash
     git clone https://github.com/aborruso/video_questions.git
     cd video_questions
     ```
 2.  Install the script using `make`:
+
     ```bash
     sudo make install
     ```
@@ -33,6 +35,7 @@ This is a good option if you want to easily receive updates and run the script f
     ```
 
 2. You can run the script directly from the `scripts` directory:
+
     ```bash
     ./scripts/qv.sh <YouTube URL> ...
     ```
@@ -70,10 +73,12 @@ If you prefer to use `qv.sh` as a standalone command from anywhere on your syste
 To ensure that the script you downloaded has not been tampered with, you can verify its SHA256 checksum.
 
 1.  Download the checksum file:
+
     ```bash
     curl -o qv.sh.sha256 -L https://raw.githubusercontent.com/aborruso/video_questions/main/qv.sh.sha256
     ```
 2.  Verify the checksum:
+
     ```bash
     sha256sum -c qv.sh.sha256
     ```
@@ -122,6 +127,7 @@ The script supports the following options:
 - `--debug`: Show first 3 lines of content sent to LLM for debugging.
 
 ## Example Usage
+
 
 ```bash
 # Example with English subtitles
