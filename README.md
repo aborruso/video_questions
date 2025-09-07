@@ -89,7 +89,7 @@ qv <YouTube URL> [<Question>] [OPTIONS]
 
 ### Arguments
 
-- `<YouTube URL>`: (Required) The full URL of the YouTube video.
+- `<YouTube URL>`: (Required) The full URL of the YouTube video. Supported formats include `https://www.youtube.com/watch?v=VIDEO_ID`, `https://youtu.be/VIDEO_ID`, and `https://www.youtube.com/shorts/VIDEO_ID`.
 - `<Question>`: (Optional) The question to ask about the video. If omitted, the script only outputs the subtitles (same as `--text-only`).
 
 ## Requirements
