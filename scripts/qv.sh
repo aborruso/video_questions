@@ -90,11 +90,11 @@ qv() {
     echo "Usage: qv <YouTube URL> <Question> [-p language <language>] [-sub <filename>] [-t|--template <template>] [--text-only] [--debug]"
     echo
     echo "Example:"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'  # Ask a question about the video"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy  # Use a specific llm template"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian  # Get the answer in Italian"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Output subtitles to stdout"
-    echo "  qv.sh 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt  # Save subtitles to a file"
+    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?'  # Ask a question about the video"
+    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy  # Use a specific llm template"
+    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -p language Italian  # Get the answer in Italian"
+    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only  # Output subtitles to stdout"
+    echo "  qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this video about?' -sub subtitles.txt  # Save subtitles to a file"
     return 1
   fi
 
