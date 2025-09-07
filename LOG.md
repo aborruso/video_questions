@@ -1,5 +1,19 @@
 # LOG
 
+## 2025-09-07
+
+- **Enhanced `qv.sh` script**:
+  - Introduced `check_dependencies` function for robust dependency validation.
+  - Refactored main logic into `qv` function for modularity.
+  - Improved argument parsing with new options (`-p language`, `-t`, `-sub`, `--text-only`, `--debug`).
+  - Added comprehensive YouTube URL validation and short URL conversion.
+  - Implemented advanced subtitle download strategy (original language, English, auto-generated).
+  - Enhanced cache management for subtitles and video titles.
+  - Included subtitle content validation and optional saving to file.
+  - Provided `--text-only` mode for subtitle output without LLM processing.
+  - Refined LLM system prompt with video title and language support.
+  - Integrated debug mode for LLM input inspection.
+
 ## 2025-08-14
 
 - **Translated and renamed `idee.md` to `ideas.md`**: The file with enhancement ideas has been translated to English and renamed.
