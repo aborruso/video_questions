@@ -15,6 +15,8 @@
   - Fix checksum file `qv.sh.sha256` (hash aggiornato)
   - Fix Anthropic setup: aggiunto step `llm install llm-anthropic`
   - Migliorato test command: esempio più informativo, nota su default model
+  - Aggiunta sezione Cache Behavior con gestione cache
+  - Documentato `make uninstall`
 
 ## 2025-12-22
 

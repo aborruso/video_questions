@@ -120,6 +120,12 @@ make install
 
 This will copy the script to `/usr/local/bin` and make it executable. The command will automatically use `sudo` if needed based on your permissions.
 
+**To uninstall:**
+
+```bash
+make uninstall
+```
+
 ### Option 2: Run from Repository (No Install)
 
 This is a good option if you want to easily receive updates and run the script from the repository folder.
@@ -269,3 +275,31 @@ qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -p 
 # Debug mode to see input to LLM
 qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
 ```
+
+## Cache Behavior
+
+The script automatically caches downloaded subtitles to improve performance and reduce repeated downloads.
+
+**Cache location:** `${TMPDIR:-/tmp}/qv_cache/`
+
+**Performance:**
+- First download: ~5-10 seconds (depends on video and network)
+- Cached access: instant (subtitles retrieved from local cache)
+
+**Cache lifetime:** Subtitle files are automatically deleted after 60 days
+
+**Manual cache management:**
+
+```bash
+# View cache directory
+ls -lh /tmp/qv_cache/
+
+# Clear entire cache
+rm -rf /tmp/qv_cache/
+
+# Clear cache for specific video
+rm -f /tmp/qv_cache/VIDEO_ID.txt
+rm -f /tmp/qv_cache/VIDEO_ID.title.txt
+```
+
+**Note:** The cache cleanup runs automatically each time you use the script, removing files older than 60 days.
