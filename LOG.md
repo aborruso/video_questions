@@ -1,5 +1,34 @@
 # LOG
 
+## 2025-12-28
+
+- **README e Makefile: miglioramenti UX installazione**
+  - Requirements spostato PRIMA di Installation (ordine logico)
+  - Sezione LLM Configuration aggiunta (setup API keys CRITICO)
+  - Istruzioni install deps per Ubuntu/Debian/Fedora/Arch
+  - Makefile: target `test` per verifica post-install
+  - Makefile: target `help_install` con comandi distro-specific
+  - Makefile: `check_dependencies` con warning llm keys (non blocca)
+  - Sezione Verify Installation con troubleshooting
+  - Option 2 rinominata: "Run from Repository (No Install)"
+  - Chiarito uso sudo automatico in `make install`
+  - Fix checksum file `qv.sh.sha256` (hash aggiornato)
+
+## 2025-12-22
+
+- **Python migration plan** created in `docs/python-migration.md`
+  - Complete migration strategy from bash to Python
+  - 4-phase implementation plan (6 weeks estimated)
+  - Cross-platform compatibility (Windows, macOS, Linux)
+  - PyPI distribution with `pip install qv`
+  - Backward compatibility strategy with 3-month parallel support
+  - **Decision: Migration approved, starting in a few days**
+- Created comprehensive development plan in `docs/future-ideas.md`
+- Documented 5 development phases with priorities and effort estimates
+- Sprint-based implementation roadmap (5 sprints)
+- Enhanced CLAUDE.md with project architecture details
+- Created `docs/NEXT.md` with first session tasks for Python migration
+
 ## 2025-09-07
 
 - **Enhanced `qv.sh` script**:
