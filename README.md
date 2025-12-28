@@ -56,19 +56,33 @@ llm keys set openai
 **For Anthropic (Claude models):**
 
 ```bash
+# First install the Anthropic plugin
+llm install llm-anthropic
+
+# Then set your API key
 llm keys set anthropic
 # Enter your API key when prompted
 ```
+
+**For other providers (Gemini, etc.):**
+
+See the [LLM plugins directory](https://llm.datasette.io/en/stable/plugins/directory.html) for available providers.
 
 ### Verify LLM Setup
 
 Test that llm is working correctly:
 
 ```bash
-llm "test" -m gpt-4o-mini
+llm "Ten fun names for a pet pelican"
 ```
 
-If this returns a response, your setup is complete.
+This uses the default gpt-4o-mini model. If this returns a response, your setup is complete.
+
+To test with a specific model:
+
+```bash
+llm "Your question here" -m claude-3-5-sonnet-20241022
+```
 
 ### LLM Documentation
 

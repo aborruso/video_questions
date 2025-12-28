@@ -63,7 +63,11 @@ help_install:
 	@echo "  pip3 install yt-dlp llm"
 	@echo ""
 	@echo "After installing dependencies, configure llm:"
-	@echo "  llm keys set openai    # or 'anthropic' for Claude"
+	@echo "  For OpenAI:"
+	@echo "    llm keys set openai"
+	@echo "  For Anthropic Claude:"
+	@echo "    llm install llm-anthropic"
+	@echo "    llm keys set anthropic"
 	@echo ""
 	@echo "Then run: make install"
 
