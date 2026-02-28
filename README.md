@@ -1,305 +1,141 @@
-# Project Overview
+# vq — video questions
 
-This project provides a script to fetch YouTube video subtitles and use them as a prompt for a language model.
+Answer questions about YouTube videos using subtitles and an LLM.
+
+`vq` fetches subtitles from a YouTube video, passes them to an LLM, and returns the answer — with live Markdown rendering in the terminal.
 
 ## Requirements
 
-The script requires the following commands to be installed:
+- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) — subtitle extraction
+- [`uv`](https://docs.astral.sh/uv/) — Python package manager
+- [`llm`](https://llm.datasette.io/) — LLM integration (installed automatically)
 
-- `yt-dlp` ([GitHub repository](https://github.com/yt-dlp/yt-dlp))
-- `curl` ([Official website](https://curl.se/))
-- `llm` (LLM command-line tool, [GitHub repository](https://llm.datasette.io/en/stable/))
-- `jq` ([GitHub repository](https://github.com/stedolan/jq))
-
-### Installing Dependencies
-
-Choose the commands for your Linux distribution:
-
-**Ubuntu/Debian:**
+Install `yt-dlp` and `uv`:
 
 ```bash
-sudo apt install curl jq
-pip3 install yt-dlp llm
+pip3 install yt-dlp
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
-
-**Fedora/RHEL:**
-
-```bash
-sudo dnf install curl jq
-pip3 install yt-dlp llm
-```
-
-**Arch Linux:**
-
-```bash
-sudo pacman -S curl jq
-pip3 install yt-dlp llm
-```
-
-Alternatively, run `make help_install` after cloning the repository to see these commands.
 
 ## LLM Configuration
 
-The `llm` command-line tool is the core of this program. Before first use, you must configure an API key.
+Before first use, configure an API key for your preferred provider:
 
-### Setting Up API Keys
-
-Choose your preferred LLM provider:
-
-**For OpenAI (GPT models):**
+**OpenAI:**
 
 ```bash
 llm keys set openai
-# Enter your API key when prompted
 ```
 
-**For Anthropic (Claude models):**
+**Anthropic (Claude):**
 
 ```bash
-# First install the Anthropic plugin
 llm install llm-anthropic
-
-# Then set your API key
 llm keys set anthropic
-# Enter your API key when prompted
 ```
 
-**For other providers (Gemini, etc.):**
-
-See the [LLM plugins directory](https://llm.datasette.io/en/stable/plugins/directory.html) for available providers.
-
-### Verify LLM Setup
-
-Test that llm is working correctly:
-
-```bash
-llm "Ten fun names for a pet pelican"
-```
-
-This uses the default gpt-4o-mini model. If this returns a response, your setup is complete.
-
-To test with a specific model:
-
-```bash
-llm "Your question here" -m claude-3-5-sonnet-20241022
-```
-
-### LLM Documentation
-
-The `llm` tool supports many providers and features:
-
-- **GitHub Repository**: [https://github.com/simonw/llm](https://github.com/simonw/llm)
-- **Documentation**: [https://llm.datasette.io/en/stable/](https://llm.datasette.io/en/stable/)
-- **Setup Guide**: [https://llm.datasette.io/en/stable/setup.html](https://llm.datasette.io/en/stable/setup.html)
-- **Templates**: [https://llm.datasette.io/en/stable/templates.html](https://llm.datasette.io/en/stable/templates.html)
+For other providers, see the [LLM plugins directory](https://llm.datasette.io/en/stable/plugins/directory.html).
 
 ## Installation
-
-You have three main options to install and use this script.
-
-### Option 1: Using Make (Recommended)
-
-This is the easiest and recommended way to install the script.
-
-1. Clone the repository:
 
 ```bash
 git clone https://github.com/aborruso/video_questions.git
 cd video_questions
-```
-
-2. Install dependencies (see [Installing Dependencies](#installing-dependencies) above)
-
-3. Configure llm API keys (see [LLM Configuration](#llm-configuration) above)
-
-4. Install the script using `make`:
-
-```bash
 make install
 ```
 
-This will copy the script to `/usr/local/bin` and make it executable. The command will automatically use `sudo` if needed based on your permissions.
-
-**To uninstall:**
+**Uninstall:**
 
 ```bash
 make uninstall
 ```
 
-### Option 2: Run from Repository (No Install)
-
-This is a good option if you want to easily receive updates and run the script from the repository folder.
-
-1. Clone the repository to your local machine:
+**Development environment:**
 
 ```bash
-git clone https://github.com/aborruso/video_questions.git
-cd video_questions
+make dev
 ```
-
-2. Install dependencies and configure llm (see sections above)
-
-3. You can run the script directly from the `scripts` directory:
-
-```bash
-./scripts/qv.sh <YouTube URL> ...
-```
-
-### Option 3: Standalone Script
-
-If you prefer to use `qv.sh` as a standalone command from anywhere on your system.
-
-1. Download the script:
-
-```bash
-curl -o qv.sh -L https://raw.githubusercontent.com/aborruso/video_questions/main/scripts/qv.sh
-```
-
-2. Make it executable:
-
-```bash
-chmod +x qv.sh
-```
-
-3. Move it to a directory in your system's `PATH`. A common choice is `/usr/local/bin`:
-
-```bash
-sudo mv qv.sh /usr/local/bin/
-```
-
-4. Now you can run the script from any directory:
-
-```bash
-qv <YouTube URL> ...
-```
-
-#### Verify the script's integrity (Optional but recommended)
-
-To ensure that the script you downloaded has not been tampered with, you can verify its SHA256 checksum.
-
-1. Download the checksum file:
-
-```bash
-curl -o qv.sh.sha256 -L https://raw.githubusercontent.com/aborruso/video_questions/main/qv.sh.sha256
-```
-
-2. Verify the checksum:
-
-```bash
-sha256sum -c qv.sh.sha256
-```
-
-If the verification is successful, you will see the message: `qv.sh: OK`.
 
 ## Verify Installation
-
-After installation, verify that everything works:
-
-**Using Make:**
 
 ```bash
 make test
 ```
 
-**Manual test:**
+Or manually:
 
 ```bash
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only | head -5
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only | head -5
 ```
-
-If you see subtitle text, the installation is successful.
-
-### Troubleshooting
-
-**Error: command not found**
-- Make sure `/usr/local/bin` is in your PATH
-- Try running `./scripts/qv.sh` directly from the repository
-
-**Error: yt-dlp/curl/jq/llm not installed**
-- Run `make check_dependencies` to see which tools are missing
-- Install missing dependencies using commands from [Installing Dependencies](#installing-dependencies)
-
-**Warning: llm has no API keys configured**
-- Follow steps in [LLM Configuration](#llm-configuration) section
-- Run `llm keys path` to verify keys file location
 
 ## Usage
 
-The basic syntax for the script is:
-
-```bash
-qv <YouTube URL> [<Question>] [OPTIONS]
+```
+vq [OPTIONS] URL [QUESTION]
 ```
 
 ### Arguments
 
-- `<YouTube URL>`: (Required) The full URL of the YouTube video. Supported formats include `https://www.youtube.com/watch?v=VIDEO_ID`, `https://youtu.be/VIDEO_ID`, and `https://www.youtube.com/shorts/VIDEO_ID`.
+| Argument | Description |
+|---|---|
+| `URL` | YouTube URL (required). Supports standard, `youtu.be`, and Shorts URLs. |
+| `QUESTION` | Question to ask about the video. If omitted, switches to `--text-only` mode. |
 
-- `<Question>`: (Optional) The question to ask about the video. If omitted, the script only outputs the subtitles (same as `--text-only`).
+### Options
 
-## Options
+| Option | Description |
+|---|---|
+| `-p, --language TEXT` | Response language (e.g. `Italian`, `French`) |
+| `-t, --template TEXT` | LLM [template](https://llm.datasette.io/en/stable/templates.html) name |
+| `-m, --model TEXT` | LLM model to use (e.g. `gpt-4o`, `claude-3-5-sonnet-20241022`) |
+| `--sub PATH` | Save subtitles to file |
+| `-o, --output PATH` | Save LLM response to file |
+| `--no-cache` | Skip cache, re-download subtitles |
+| `--text-only` | Print subtitles and exit (no LLM) |
+| `--debug` | Show debug info (system prompt and prompt preview) |
+| `-V, --version` | Show version and exit |
 
-The script supports the following options:
-
-- `-sub <filename>`: Save the extracted subtitles to a file.
-
-- `-t, --template <template>`: Use a specific template for the LLM response.
-
-- `--text-only`: Only download and display subtitles without processing with LLM. If you provide only a URL without a question, this mode is activated automatically.
-
-- `-p language <language>`: Specify the response language (e.g., "Italian", "English").
-
-- `--debug`: Show first 3 lines of content sent to LLM for debugging.
-
-## Example Usage
+## Examples
 
 ```bash
-# Example with English subtitles
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics covered in this video?'
+# Ask a question about a video
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics?'
 
-# Save subtitles to a file
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -sub my_subtitles.txt
+# Reply in Italian
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -p Italian
 
-# Use a specific llm template for the response (https://llm.datasette.io/en/stable/templates.html)
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t andy
+# Use a specific model
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Summarize this' -m claude-3-5-sonnet-20241022
 
-# Just output the subtitles in stdout without asking questions
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
+# Use an LLM template
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -t my_template
 
-# Combine options: save subtitles and ask questions
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -sub my_subtitles.txt
+# Save subtitles to file
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' --sub subtitles.txt
 
-# Specify response language
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is the main message?' -p language French
+# Save LLM response to file
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Summarize this' -o response.md
 
-# Debug mode to see input to LLM
-qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' --debug
+# Print subtitles only (no LLM)
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only
+
+# Force re-download (skip cache)
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What changed?' --no-cache
 ```
 
-## Cache Behavior
+## Cache
 
-The script automatically caches downloaded subtitles to improve performance and reduce repeated downloads.
-
-**Cache location:** `${TMPDIR:-/tmp}/qv_cache/`
-
-**Performance:**
-- First download: ~5-10 seconds (depends on video and network)
-- Cached access: instant (subtitles retrieved from local cache)
-
-**Cache lifetime:** Subtitle files are automatically deleted after 60 days
-
-**Manual cache management:**
+Subtitles are cached in `/tmp/qv_cache/` for 60 days.
 
 ```bash
-# View cache directory
+# View cache
 ls -lh /tmp/qv_cache/
 
-# Clear entire cache
+# Clear all cache
 rm -rf /tmp/qv_cache/
 
-# Clear cache for specific video
-rm -f /tmp/qv_cache/VIDEO_ID.txt
-rm -f /tmp/qv_cache/VIDEO_ID.title.txt
+# Clear cache for a specific video
+rm -f /tmp/qv_cache/VIDEO_ID.txt /tmp/qv_cache/VIDEO_ID.title.txt
 ```
 
-**Note:** The cache cleanup runs automatically each time you use the script, removing files older than 60 days.
+Use `--no-cache` to force a fresh download without clearing the cache.
