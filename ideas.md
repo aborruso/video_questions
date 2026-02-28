@@ -12,18 +12,18 @@
 ## 2. Generation of Derived Content
 
 - **Article/Post Creation**: An option (`--create-article`) that uses the video's content as a basis for writing a blog post, complete with a title, introduction, and paragraphs.
-- **Social Media Post Generation**: A flag (`--social-post <platform>`) to generate content suitable for specific platforms (e.g., a thread for Twitter/X, a post for LinkedIn) based on the key concepts of the video.
+- **Social Media Post Generation**: A flag (`--social-post <platform>`) to generate content suitable for specific platforms (e.g., a thread for Twitter/X, a post for LinkedIn) based on the key concepts of the video. _(Already covered by LLM templates via `-t`.)_
 
 ---
 
 ## 3. Extension of Input Sources
 
 - **Support for Local Files**: Allow inputting not only a YouTube URL but also a local video or audio file (e.g., `qv /path/to/my-video.mp4 "What is it about?"`). This would require the integration of a local transcription tool like whisper.cpp.
-- **Web Page Analysis**: Extend the script to accept any URL. If it's not a YouTube video, it could download the textual content of the page and allow asking questions about it.
+- **Web Page Analysis**: Extend the script to accept any URL. If it's not a YouTube video, it could download the textual content of the page and allow asking questions about it. _(Not planned — off topic for a YouTube-focused tool.)_
 
 ---
 
 ## 4. Usability and Integration Improvement
 
 - **Subtitle Translation**: An option (`--translate-to <language>`) that not only answers in a different language but also translates the entire subtitle text and saves it (or uses it as a basis for the answers).
-- **Multiple Output Formats**: Add a flag (`--output-format <format>`) to receive the output in structured formats like JSON or Markdown, making the script easier to integrate into other automated workflows.
+- **Multiple Output Formats**: Add a flag (`--output-format <format>`) to receive the output in structured formats like JSON or Markdown, making the script easier to integrate into other automated workflows. _(Not planned.)_
