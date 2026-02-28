@@ -1,2 +1,6 @@
 .aider*
 tmp*
+__pycache__/
+*.pyc
+.venv/
+dist/
