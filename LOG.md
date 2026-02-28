@@ -1,5 +1,10 @@
 # LOG
 
+## 2026-02-28 (2)
+
+- **New CLI options**: `--no-cache` (force re-download), `-m/--model` (LLM model), `-o/--output` (save response to file)
+- **Fix**: moved `import time` to top-level imports
+
 ## 2026-02-28
 
 - **Renamed command `qv` → `vq`** (video questions, correct abbreviation)

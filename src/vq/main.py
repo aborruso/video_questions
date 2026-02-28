@@ -5,6 +5,8 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
+from importlib.metadata import version
 from pathlib import Path
 
 import requests
@@ -14,6 +16,14 @@ from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.status import Status
+
+__version__ = version("vq")
+
+def _version_callback(value: bool) -> None:
+    if value:
+        console.print(f"vq {__version__}")
+        raise typer.Exit()
+
 
 app = typer.Typer(help="Query YouTube videos with LLM.", add_completion=False)
 console = Console()
@@ -122,12 +132,11 @@ def get_subtitle_url(url: str, info: dict) -> str:
     raise typer.Exit(1)
 
 
-def load_subtitles(url: str, video_id: str) -> tuple[str, str]:
+def load_subtitles(url: str, video_id: str, no_cache: bool = False) -> tuple[str, str]:
     """Return (content, title), using cache when available."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Cleanup old cache files
-    import time
     cutoff = time.time() - CACHE_DAYS * 86400
     for f in CACHE_DIR.glob("*"):
         if f.stat().st_mtime < cutoff:
@@ -136,7 +145,7 @@ def load_subtitles(url: str, video_id: str) -> tuple[str, str]:
     cache_file = CACHE_DIR / f"{video_id}.txt"
     title_file = CACHE_DIR / f"{video_id}.title.txt"
 
-    if cache_file.exists():
+    if not no_cache and cache_file.exists():
         content = cache_file.read_text().strip()
         if content:
             console.print(f"[dim]Using cached subtitles[/dim]")
@@ -181,9 +190,13 @@ def main(
     question: str = typer.Argument(None, help="Question about the video"),
     language: str = typer.Option(None, "-p", "--language", help="Response language"),
     template: str = typer.Option(None, "-t", "--template", help="LLM template name"),
+    model: str = typer.Option(None, "-m", "--model", help="LLM model to use"),
     sub_file: Path = typer.Option(None, "--sub", help="Save subtitles to file"),
+    output: Path = typer.Option(None, "-o", "--output", help="Save LLM response to file"),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Skip cache, re-download subtitles"),
     text_only: bool = typer.Option(False, "--text-only", help="Print subtitles and exit"),
     debug: bool = typer.Option(False, "--debug", help="Show debug info"),
+    _version: bool = typer.Option(False, "--version", "-V", callback=_version_callback, is_eager=True, help="Show version and exit"),
 ) -> None:
     check_dependencies()
 
@@ -196,7 +209,7 @@ def main(
     with Status("Getting video ID...", console=console):
         video_id = get_video_id(url)
 
-    content, title = load_subtitles(url, video_id)
+    content, title = load_subtitles(url, video_id, no_cache=no_cache)
 
     if len(content) < 100:
         console.print("[yellow]Warning:[/yellow] Subtitles seem unusually short. Results may be inaccurate.")
@@ -235,14 +248,17 @@ def main(
     console.print()
 
     # Build llm CLI command — uses system llm with all user plugins/models
+    if not shutil.which("llm"):
+        console.print("[red]Error:[/red] llm is not installed or not in PATH.")
+        raise typer.Exit(1)
+
     if template:
         cmd = ["llm", "-t", template, full_prompt]
     else:
         cmd = ["llm", "-s", system_prompt, full_prompt]
 
-    if not shutil.which("llm"):
-        console.print("[red]Error:[/red] llm is not installed or not in PATH.")
-        raise typer.Exit(1)
+    if model:
+        cmd = cmd[:1] + ["-m", model] + cmd[1:]
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
@@ -258,6 +274,10 @@ def main(
         err = process.stderr.read()
         console.print(f"[red]Error:[/red] llm failed. {err}")
         raise typer.Exit(1)
+
+    if output:
+        output.write_text(full_text)
+        console.print(f"[green]Response saved to {output}[/green]")
 
 
 if __name__ == "__main__":
