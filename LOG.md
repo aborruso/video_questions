@@ -1,22 +1,35 @@
 # LOG
 
+## 2026-02-28
+
+- **Renamed command `qv` → `vq`** (video questions, correct abbreviation)
+- **Converted bash script to Python CLI**
+  - New entry point: `src/vq/main.py` (typer + rich + llm Python library)
+  - `requests` replaces `curl`; native `json` replaces `jq`
+  - LLM integrated via Python library (no subprocess); templates via `llm.cli.load_template()`
+  - LLM output rendered as streaming Markdown via `rich.live.Live`
+  - Status messages with `rich.Status` and colored panels
+  - `pyproject.toml` added; install via `uv tool install .`
+  - Makefile updated: `make dev` (venv), `make install` (uv tool)
+  - `scripts/qv.sh` kept as reference
+
 ## 2025-12-28
 
-- **README e Makefile: miglioramenti UX installazione**
-  - Requirements spostato PRIMA di Installation (ordine logico)
-  - Sezione LLM Configuration aggiunta (setup API keys CRITICO)
-  - Istruzioni install deps per Ubuntu/Debian/Fedora/Arch
-  - Makefile: target `test` per verifica post-install
-  - Makefile: target `help_install` con comandi distro-specific
-  - Makefile: `check_dependencies` con warning llm keys (non blocca)
-  - Sezione Verify Installation con troubleshooting
-  - Option 2 rinominata: "Run from Repository (No Install)"
-  - Chiarito uso sudo automatico in `make install`
-  - Fix checksum file `qv.sh.sha256` (hash aggiornato)
-  - Fix Anthropic setup: aggiunto step `llm install llm-anthropic`
-  - Migliorato test command: esempio più informativo, nota su default model
-  - Aggiunta sezione Cache Behavior con gestione cache
-  - Documentato `make uninstall`
+- **README and Makefile: install UX improvements**
+  - Requirements moved before Installation (logical order)
+  - LLM Configuration section added (API keys setup)
+  - Dependency install instructions for Ubuntu/Debian/Fedora/Arch
+  - Makefile: `test` target for post-install verification
+  - Makefile: `help_install` target with distro-specific commands
+  - Makefile: `check_dependencies` warns on missing llm keys (non-blocking)
+  - Verify Installation section with troubleshooting
+  - Option 2 renamed: "Run from Repository (No Install)"
+  - Clarified automatic sudo in `make install`
+  - Fixed `qv.sh.sha256` checksum
+  - Fixed Anthropic setup: added `llm install llm-anthropic` step
+  - Improved test command with more informative example
+  - Added Cache Behavior section
+  - Documented `make uninstall`
 
 ## 2025-12-22
 

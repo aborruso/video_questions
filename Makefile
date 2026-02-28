@@ -1,35 +1,28 @@
 # Makefile for qv
 
-PREFIX ?= /usr/local
-BINDIR = $(PREFIX)/bin
+.PHONY: dev install uninstall check_dependencies test help_install help
 
-.PHONY: install uninstall check_dependencies test help_install help
+dev:
+	@echo "Setting up development environment..."
+	@uv venv
+	@uv pip install -e .
+	@echo "Done. Activate with: source .venv/bin/activate"
 
 install:
 	@make check_dependencies
-	@echo "Installing qv to $(BINDIR)..."
-	@if [ -w "$(BINDIR)" ]; then \
-		install -m 755 scripts/qv.sh $(BINDIR)/qv; \
-	else \
-		sudo install -m 755 scripts/qv.sh $(BINDIR)/qv; \
-	fi
+	@echo "Installing qv..."
+	@uv tool install .
 	@echo "qv installed successfully."
 
 uninstall:
-	@echo "Uninstalling qv from $(BINDIR)..."
-	@if [ -w "$(BINDIR)" ]; then \
-		rm -f $(BINDIR)/qv; \
-	else \
-		sudo rm -f $(BINDIR)/qv; \
-	fi
-	@echo "qv uninstalled successfully."
+	@echo "Uninstalling qv..."
+	@uv tool uninstall qv
+	@echo "qv uninstalled."
 
 check_dependencies:
 	@echo "Checking dependencies..."
 	@command -v yt-dlp >/dev/null 2>&1 || (echo "yt-dlp is not installed. Please install it first."; exit 1)
-	@command -v curl >/dev/null 2>&1 || (echo "curl is not installed. Please install it first."; exit 1)
-	@command -v llm >/dev/null 2>&1 || (echo "llm is not installed. Please install it first."; exit 1)
-	@command -v jq >/dev/null 2>&1 || (echo "jq is not installed. Please install it first."; exit 1)
+	@command -v uv >/dev/null 2>&1 || (echo "uv is not installed. See https://docs.astral.sh/uv/"; exit 1)
 	@echo "All dependencies are satisfied."
 	@keys_file=$$(llm keys path 2>/dev/null); \
 	if [ ! -f "$$keys_file" ] || [ ! -s "$$keys_file" ]; then \
@@ -40,9 +33,8 @@ check_dependencies:
 	fi
 
 test:
-	@echo "Testing qv installation..."
+	@echo "Testing qv..."
 	@command -v qv >/dev/null 2>&1 || (echo "Error: qv not found. Run 'make install' first."; exit 1)
-	@echo "Downloading test video subtitles..."
 	@qv 'https://www.youtube.com/watch?v=OM6XIICm_qo' --text-only | head -5
 	@echo ""
 	@echo "Test completed successfully!"
@@ -50,33 +42,26 @@ test:
 help_install:
 	@echo "Installation commands for dependencies:"
 	@echo ""
-	@echo "Ubuntu/Debian:"
-	@echo "  sudo apt install curl jq"
-	@echo "  pip3 install yt-dlp llm"
+	@echo "yt-dlp:"
+	@echo "  pip3 install yt-dlp"
 	@echo ""
-	@echo "Fedora/RHEL:"
-	@echo "  sudo dnf install curl jq"
-	@echo "  pip3 install yt-dlp llm"
-	@echo ""
-	@echo "Arch Linux:"
-	@echo "  sudo pacman -S curl jq"
-	@echo "  pip3 install yt-dlp llm"
+	@echo "uv:"
+	@echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"
 	@echo ""
 	@echo "After installing dependencies, configure llm:"
-	@echo "  For OpenAI:"
-	@echo "    llm keys set openai"
-	@echo "  For Anthropic Claude:"
-	@echo "    llm install llm-anthropic"
-	@echo "    llm keys set anthropic"
+	@echo "  For OpenAI:   llm keys set openai"
+	@echo "  For Anthropic: llm install llm-anthropic && llm keys set anthropic"
+	@echo "  See: https://llm.datasette.io/en/stable/setup.html"
 	@echo ""
 	@echo "Then run: make install"
 
 help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
-	@echo "  install            Install qv"
+	@echo "  dev                Set up uv venv for development"
+	@echo "  install            Install qv globally via uv tool"
 	@echo "  uninstall          Uninstall qv"
 	@echo "  check_dependencies Check for required dependencies"
 	@echo "  test               Test qv installation"
-	@echo "  help_install       Show distribution-specific installation commands"
+	@echo "  help_install       Show dependency installation commands"
 	@echo "  help               Show this help message"

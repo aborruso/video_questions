@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vq"
+version = "0.1.0"
+description = "Video questions: answer questions about YouTube videos with LLM"
+requires-python = ">=3.10"
+dependencies = [
+    "typer",
+    "rich",
+    "requests",
+    "llm",
+]
+
+[project.scripts]
+vq = "vq.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vq"]
