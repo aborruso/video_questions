@@ -261,14 +261,17 @@ def main(
         cmd = cmd[:1] + ["-m", model] + cmd[1:]
 
     process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    process.stdin.write(full_prompt)
-    process.stdin.close()
+    try:
+        process.stdin.write(full_prompt)
+        process.stdin.close()
+    except BrokenPipeError:
+        pass
 
     # Stream stdout with live Markdown rendering
     full_text = ""
     with Live(Markdown(""), console=console, refresh_per_second=8) as live:
-        for char in iter(lambda: process.stdout.read(1), ""):
-            full_text += char
+        for chunk in iter(lambda: process.stdout.read(64), ""):
+            full_text += chunk
             live.update(Markdown(full_text))
 
     process.wait()
