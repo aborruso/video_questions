@@ -253,14 +253,16 @@ def main(
         raise typer.Exit(1)
 
     if template:
-        cmd = ["llm", "-t", template, full_prompt]
+        cmd = ["llm", "-t", template]
     else:
-        cmd = ["llm", "-s", system_prompt, full_prompt]
+        cmd = ["llm", "-s", system_prompt]
 
     if model:
         cmd = cmd[:1] + ["-m", model] + cmd[1:]
 
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process.stdin.write(full_prompt)
+    process.stdin.close()
 
     # Stream stdout with live Markdown rendering
     full_text = ""
