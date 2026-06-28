@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-06-28 (2)
+
+- **Nuovo flag `--metadata`**: stampa i metadati del video come **una riga JSONL** su stdout (`id, url, title, description, channel, channel_id/url, duration, duration_string, upload_date, view/like/comment_count, language, tags, categories, thumbnail, subtitles, has_automatic_captions`) e termina, **senza scaricare il transcript** (solo `yt-dlp -j`). Rifattorizzato l'estrazione `info` in `get_info()` (riusato da `load_subtitles`); aggiunto `build_metadata()`.
+- **`--help` riscritto per agenti**: docstring di `main()` con i 4 modi (default / no question / `--text-only` / `--metadata`), nota "payload su stdout, status su stderr (pipe-safe)" ed esempi con `>`/`jq`. Migliorati help app e opzioni `--text-only`/`--metadata`.
+- Versione → 0.1.3.
+
 ## 2026-06-28
 
 - Versione → 0.1.2 (dedup + stderr + #3/#4/#5).

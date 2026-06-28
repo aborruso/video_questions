@@ -26,7 +26,10 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-app = typer.Typer(help="Query YouTube videos with LLM.", add_completion=False)
+app = typer.Typer(
+    help="Answer questions about a YouTube video from its subtitles, via an LLM.",
+    add_completion=False,
+)
 # console -> stdout: only the payload (subtitle text / LLM answer / --version).
 # err_console -> stderr: all status, progress, warnings, errors and decorations,
 # so stdout stays clean for pipes (`vq URL --text-only > file.txt`).
@@ -180,6 +183,41 @@ def get_subtitle_url(url: str, info: dict) -> str:
     raise typer.Exit(1)
 
 
+def get_info(url: str) -> dict:
+    with Status("Fetching video info...", console=err_console):
+        r = subprocess.run(["yt-dlp", "-j", url], capture_output=True, text=True)
+        if r.returncode != 0:
+            err_console.print("[red]Error:[/red] yt-dlp failed to fetch video info.")
+            raise typer.Exit(1)
+        return json.loads(r.stdout)
+
+
+def build_metadata(info: dict, url: str) -> dict:
+    # Curated, transcript-free view of the yt-dlp info dict (drops the heavy
+    # formats/fragments/thumbnails arrays), suitable as one JSONL record.
+    return {
+        "id": info.get("id"),
+        "url": info.get("webpage_url") or url,
+        "title": info.get("title"),
+        "description": info.get("description"),
+        "channel": info.get("channel") or info.get("uploader"),
+        "channel_id": info.get("channel_id"),
+        "channel_url": info.get("channel_url") or info.get("uploader_url"),
+        "duration": info.get("duration"),
+        "duration_string": info.get("duration_string"),
+        "upload_date": info.get("upload_date"),
+        "view_count": info.get("view_count"),
+        "like_count": info.get("like_count"),
+        "comment_count": info.get("comment_count"),
+        "language": info.get("language"),
+        "tags": info.get("tags"),
+        "categories": info.get("categories"),
+        "thumbnail": info.get("thumbnail"),
+        "subtitles": sorted(info.get("subtitles", {}).keys()),
+        "has_automatic_captions": bool(info.get("automatic_captions")),
+    }
+
+
 def load_subtitles(url: str, video_id: str, no_cache: bool = False) -> tuple[str, str]:
     """Return (content, title), using cache when available."""
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -202,12 +240,7 @@ def load_subtitles(url: str, video_id: str, no_cache: bool = False) -> tuple[str
 
     err_console.print("[dim]Downloading subtitles...[/dim]")
 
-    with Status("Fetching video info...", console=err_console):
-        r = subprocess.run(["yt-dlp", "-j", url], capture_output=True, text=True)
-        if r.returncode != 0:
-            err_console.print("[red]Error:[/red] yt-dlp failed to fetch video info.")
-            raise typer.Exit(1)
-        info = json.loads(r.stdout)
+    info = get_info(url)
 
     # Safety net: cache under the id of the video actually fetched, so the
     # filename can never disagree with its content (no poisoned cache).
@@ -253,17 +286,46 @@ def main(
     sub_file: Path = typer.Option(None, "--sub", help="Save subtitles to file"),
     output: Path = typer.Option(None, "-o", "--output", help="Save LLM response to file"),
     no_cache: bool = typer.Option(False, "--no-cache", help="Skip cache, re-download subtitles"),
-    text_only: bool = typer.Option(False, "--text-only", help="Print subtitles and exit"),
+    text_only: bool = typer.Option(False, "--text-only", help="Print the cleaned transcript to stdout and exit (no LLM)"),
+    metadata: bool = typer.Option(False, "--metadata", help="Print video metadata as one JSONL line (no transcript) and exit"),
     debug: bool = typer.Option(False, "--debug", help="Show debug info"),
     _version: bool = typer.Option(False, "--version", "-V", callback=_version_callback, is_eager=True, help="Show version and exit"),
 ) -> None:
+    """
+    Answer questions about a YouTube video from its subtitles.
+
+    Fetches the video subtitles (cached 60 days), then feeds transcript +
+    QUESTION to an LLM and streams a Markdown answer.
+
+    Modes (stdout carries only the payload; status/errors go to stderr, so
+    output is pipe-safe):
+
+    \b
+    - default:     vq URL "your question"   -> LLM answer (Markdown)
+    - no question: vq URL                   -> prints the cleaned transcript
+    - --text-only: vq URL --text-only       -> cleaned transcript, raw text
+    - --metadata:  vq URL --metadata        -> one JSONL line of video
+                   metadata (id, url, title, description, channel, duration,
+                   upload_date, language, ...) and exit, NO transcript
+
+    \b
+    Examples:
+      vq https://youtu.be/ID "what are the 3 main points?"
+      vq https://youtu.be/ID --text-only > transcript.txt
+      vq https://youtu.be/ID --metadata | jq .title
+    """
     check_dependencies()
+
+    url = normalize_url(url)
+
+    if metadata:
+        info = get_info(url)
+        sys.stdout.write(json.dumps(build_metadata(info, url), ensure_ascii=False) + "\n")
+        return
 
     if not question and not text_only and not template:
         err_console.print("[dim]No question provided — switching to --text-only mode.[/dim]")
         text_only = True
-
-    url = normalize_url(url)
 
     with Status("Getting video ID...", console=err_console):
         video_id = get_video_id(url)

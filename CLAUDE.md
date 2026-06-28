@@ -49,7 +49,7 @@ Key functions:
 
 **Key implementation details:**
 
-1. **Argument parsing**: typer handles `url`, `question`, `-p/--language`, `-t/--template`, `--sub`, `--text-only`, `--debug`
+1. **Argument parsing**: typer handles `url`, `question`, `-p/--language`, `-t/--template`, `-m/--model`, `--sub`, `-o/--output`, `--no-cache`, `--text-only`, `--metadata`, `--debug`, `-V/--version`
 
 2. **Subtitle download strategy**: original audio lang → English → any auto-generated VTT
 
@@ -57,7 +57,7 @@ Key functions:
 
 4. **LLM integration**: uses `llm` Python library directly (no subprocess). Templates loaded via `llm.cli.load_template()`. Response streamed with live Markdown rendering via `rich.live.Live`.
 
-5. **Output**: status messages via `rich.Console`, LLM response rendered as `rich.Markdown` in real time.
+5. **Output**: payload on **stdout** only (subtitle text / LLM answer / `--version` / `--metadata` JSONL); all status, progress, warnings and errors on **stderr** via `err_console = Console(stderr=True)`, so pipes stay clean. LLM response rendered as `rich.Markdown` in real time.
 
 ## Common Tasks
 
