@@ -1,5 +1,26 @@
 # LOG
 
+## 2026-06-28
+
+- Versione → 0.1.2 (dedup + stderr + #3/#4/#5).
+- **Riuso `info`, niente seconda chiamata yt-dlp** (#3): il titolo ora si legge da `info["title"]` (già scaricato con `yt-dlp -j`); rimossa `get_video_title()` che faceva una seconda chiamata `yt-dlp --get-title`. Una chiamata di rete in meno per ogni cache miss.
+- **`--text-only` output grezzo** (#4): `sys.stdout.write(content)` al posto di `console.print(content)` → niente wrapping/troncamento Rich alla larghezza del terminale; il transcript sopravvive byte-per-byte a pipe e redirect (verificato: 1 sola riga, 8023 char, non spezzata a 80 col).
+- **Errori su stderr** (#5): già coperto dallo spostamento del task #1 (tutti gli errori su `err_console`). La parte `[m:ss]` inline riguarda l'output JSON (#2), non implementato.
+- **Status/diagnostica su stderr**: aggiunto `err_console = Console(stderr=True)`; tutti i messaggi di stato, progress (`Status`), warning, errori, panel titolo e debug ora vanno su stderr. Su stdout resta solo il payload: `--version`, contenuto `--text-only`/`--sub`, e la risposta LLM (`Live`). Così `vq URL --text-only > file.txt` produce un file pulito (prima le righe "Downloading subtitles…"/"Subtitles cached"/titolo inquinavano l'output). Verificato: stdout = solo testo, stderr = "Using cached subtitles".
+- **Fix triplicazione sottotitoli auto-generati (rolling captions)** in `clean_subtitles`: i VTT auto di YouTube ri-mostrano a ogni cue le righe ancora a schermo + la nuova porzione (riga "live" con tag `<c>`, cue transitorio 10ms in chiaro, riportata nel cue successivo) → ogni segmento usciva ~3×. Aggiunto dedup a livello di riga (`last_content`): si salta una riga di contenuto se identica all'ultima emessa. Impatto: testo `--text-only`/`--sub` pulito e ~3× token risparmiati nel prompt all'LLM. Verificato su `fI7hZap7mZ4`: 4294 → 1445 parole.
+
+## 2026-06-07 (2)
+
+- **Fix crash su video senza sottotitoli** (es. molti video Sky Sport): `yt-dlp --print` stampa `"NA"` per campi mancanti, e vq la trattava come URL valido → `requests.get("NA")` → `MissingSchema` traceback. Aggiunto `_printed_url()` che scarta `"NA"`/vuoto/template; ora questi video danno l'errore pulito "No subtitles available for this video". Aggiunto try/except su `requests.get`. Versione → 0.1.1.
+- Nota install: `uv tool install` riusa la build in cache a parità di versione → per applicare i fix bisogna alzare la versione (o `uv cache clean vq` + `--reinstall`).
+
+## 2026-06-07
+
+- **Fix cache avvelenata (id↔contenuto incoerenti)**: la cache poteva contenere i sottotitoli di un video sotto l'id di un altro. Causa: due risoluzioni `yt-dlp` separate dello stesso URL — `--get-id` (per il nome file) e `-j` (per il contenuto) — che divergono se l'URL ha parametri ambigui (`&list=`, `&index=`, mix/autoplay). Fix:
+  - `normalize_url` ora restituisce l'URL canonico `watch?v=ID` scartando i parametri extra.
+  - `get_video_id` ricava l'id dall'URL (niente più `yt-dlp --get-id`), così la chiave di cache combacia sempre con l'URL scaricato.
+  - `load_subtitles` scrive comunque sotto `info["id"]` del video effettivamente scaricato (rete di sicurezza).
+
 ## 2026-02-28 (2)
 
 - **New CLI options**: `--no-cache` (force re-download), `-m/--model` (LLM model), `-o/--output` (save response to file)

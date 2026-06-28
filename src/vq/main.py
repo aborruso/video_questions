@@ -4,6 +4,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from importlib.metadata import version
@@ -26,7 +27,11 @@ def _version_callback(value: bool) -> None:
 
 
 app = typer.Typer(help="Query YouTube videos with LLM.", add_completion=False)
+# console -> stdout: only the payload (subtitle text / LLM answer / --version).
+# err_console -> stderr: all status, progress, warnings, errors and decorations,
+# so stdout stays clean for pipes (`vq URL --text-only > file.txt`).
 console = Console()
+err_console = Console(stderr=True)
 
 CACHE_DIR = Path(tempfile.gettempdir()) / "qv_cache"
 CACHE_DAYS = 60
@@ -35,7 +40,7 @@ CACHE_DAYS = 60
 def check_dependencies() -> None:
     for dep in ["yt-dlp"]:
         if not shutil.which(dep):
-            console.print(f"[red]Error:[/red] {dep} is required but not installed.")
+            err_console.print(f"[red]Error:[/red] {dep} is required but not installed.")
             raise typer.Exit(1)
 
 
@@ -48,31 +53,51 @@ def normalize_url(url: str) -> str:
     m = re.match(r"^https://youtu\.be/([a-zA-Z0-9_-]{11})", url)
     if m:
         return f"https://www.youtube.com/watch?v={m.group(1)}"
-    # validate standard format
-    if not re.match(r"^https://(www\.)?youtube\.com/watch\?v=[a-zA-Z0-9_-]{11}", url):
-        console.print(
-            "[red]Error:[/red] Invalid YouTube URL.\n"
-            "Expected: https://www.youtube.com/watch?v=VIDEO_ID"
-        )
-        raise typer.Exit(1)
-    return url
+    # standard watch URL: keep only the video id, dropping extra params
+    # (&list=, &t=, &pp=, ...) that would make yt-dlp resolve a *different*
+    # video for --get-id vs -j and thus cache content under the wrong id.
+    m = re.match(r"^https://(www\.)?youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})", url)
+    if m:
+        return f"https://www.youtube.com/watch?v={m.group(2)}"
+    err_console.print(
+        "[red]Error:[/red] Invalid YouTube URL.\n"
+        "Expected: https://www.youtube.com/watch?v=VIDEO_ID"
+    )
+    raise typer.Exit(1)
 
 
 def get_video_id(url: str) -> str:
-    r = subprocess.run(["yt-dlp", "--get-id", url], capture_output=True, text=True)
-    if r.returncode != 0 or not r.stdout.strip():
-        console.print("[red]Error:[/red] Unable to extract video ID. Video may be private or unavailable.")
+    # url is canonical (normalize_url), so the id is the v= param. Deriving it
+    # here, instead of a separate `yt-dlp --get-id`, guarantees the cache key
+    # matches the URL the subtitles are downloaded from.
+    m = re.search(r"[?&]v=([a-zA-Z0-9_-]{11})", url)
+    if not m:
+        err_console.print("[red]Error:[/red] Unable to extract video ID from URL.")
         raise typer.Exit(1)
-    return r.stdout.strip()
+    return m.group(1)
 
 
-def get_video_title(url: str) -> str:
-    r = subprocess.run(["yt-dlp", "-q", "--skip-download", "--get-title", url], capture_output=True, text=True)
-    return r.stdout.strip() if r.returncode == 0 else ""
+def timestamp_to_seconds(ts: str) -> int:
+    parts = ts.split(":")
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+    return int(parts[0]) * 60 + int(parts[1])
+
+
+def linkify_timestamps(text: str, video_id: str) -> str:
+    def replace(m):
+        ts = m.group(0)
+        secs = timestamp_to_seconds(ts)
+        return f"{ts} (https://www.youtube.com/watch?v={video_id}&t={secs})"
+    return re.sub(r"\b\d{1,2}:\d{2}(?::\d{2})?\b", replace, text)
 
 
 def clean_subtitles(raw: str) -> str:
     lines = []
+    last_content = None
+    last_ts_secs = -60
+    pending_ts = None
+
     for line in raw.splitlines():
         line = line.strip()
         if not line:
@@ -80,15 +105,38 @@ def clean_subtitles(raw: str) -> str:
         if re.match(r"^\d+$", line):
             continue
         if "-->" in line:
+            m = re.match(r"(\d+):(\d{2}):(\d{2})", line)
+            if m:
+                secs = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + int(m.group(3))
+                if secs - last_ts_secs >= 60:
+                    pending_ts = secs
+                    last_ts_secs = secs
             continue
         if re.match(r"^\[.*\]$", line):
             continue
         if re.match(r"^WEBVTT", line) or re.match(r"^(Kind|Language):", line):
             continue
-        line = re.sub(r"<[^>]+>", "", line)
-        if line:
-            lines.append(line)
+        line = re.sub(r"<[^>]+>", "", line).strip()
+        # YouTube auto-captions are "rolling": each cue re-shows the lines still
+        # on screen plus the new portion, so every segment appears ~3x. Drop a
+        # content line when it repeats the last one already emitted.
+        if not line or line == last_content:
+            continue
+        if pending_ts is not None:
+            lines.append(f"[{pending_ts // 60}:{pending_ts % 60:02d}]")
+            pending_ts = None
+        lines.append(line)
+        last_content = line
     return " ".join(lines)
+
+
+def _printed_url(r: subprocess.CompletedProcess) -> str | None:
+    # yt-dlp --print emits the literal "NA" for missing fields; treat it (and
+    # an empty/echoed template) as "no url" so we don't return a junk value.
+    out = r.stdout.strip()
+    if r.returncode != 0 or not out or out == "NA" or out.startswith("requested_subtitles."):
+        return None
+    return out
 
 
 def get_subtitle_url(url: str, info: dict) -> str:
@@ -106,8 +154,8 @@ def get_subtitle_url(url: str, info: dict) -> str:
             capture_output=True,
             text=True,
         )
-        if r.returncode == 0 and r.stdout.strip():
-            return r.stdout.strip()
+        if _printed_url(r):
+            return _printed_url(r)
 
     # 2. English
     r = subprocess.run(
@@ -119,8 +167,8 @@ def get_subtitle_url(url: str, info: dict) -> str:
         capture_output=True,
         text=True,
     )
-    if r.returncode == 0 and r.stdout.strip():
-        return r.stdout.strip()
+    if _printed_url(r):
+        return _printed_url(r)
 
     # 3. Any auto-generated VTT
     for captions in auto_caps.values():
@@ -128,7 +176,7 @@ def get_subtitle_url(url: str, info: dict) -> str:
             if cap.get("ext") == "vtt" and cap.get("url"):
                 return cap["url"]
 
-    console.print("[red]Error:[/red] No subtitles available for this video.")
+    err_console.print("[red]Error:[/red] No subtitles available for this video.")
     raise typer.Exit(1)
 
 
@@ -148,36 +196,47 @@ def load_subtitles(url: str, video_id: str, no_cache: bool = False) -> tuple[str
     if not no_cache and cache_file.exists():
         content = cache_file.read_text().strip()
         if content:
-            console.print(f"[dim]Using cached subtitles[/dim]")
+            err_console.print(f"[dim]Using cached subtitles[/dim]")
             title = title_file.read_text().strip() if title_file.exists() else ""
             return content, title
 
-    console.print("[dim]Downloading subtitles...[/dim]")
+    err_console.print("[dim]Downloading subtitles...[/dim]")
 
-    with Status("Fetching video info...", console=console):
+    with Status("Fetching video info...", console=err_console):
         r = subprocess.run(["yt-dlp", "-j", url], capture_output=True, text=True)
         if r.returncode != 0:
-            console.print("[red]Error:[/red] yt-dlp failed to fetch video info.")
+            err_console.print("[red]Error:[/red] yt-dlp failed to fetch video info.")
             raise typer.Exit(1)
         info = json.loads(r.stdout)
 
+    # Safety net: cache under the id of the video actually fetched, so the
+    # filename can never disagree with its content (no poisoned cache).
+    real_id = info.get("id") or video_id
+    if real_id != video_id:
+        cache_file = CACHE_DIR / f"{real_id}.txt"
+        title_file = CACHE_DIR / f"{real_id}.title.txt"
+
     subtitle_url = get_subtitle_url(url, info)
 
-    with Status("Downloading subtitle file...", console=console):
-        resp = requests.get(subtitle_url, timeout=30)
+    with Status("Downloading subtitle file...", console=err_console):
+        try:
+            resp = requests.get(subtitle_url, timeout=30)
+        except requests.RequestException:
+            err_console.print("[red]Error:[/red] Subtitle download failed.")
+            raise typer.Exit(1)
         if not resp.ok or not resp.text.strip():
-            console.print("[red]Error:[/red] Subtitle download failed.")
+            err_console.print("[red]Error:[/red] Subtitle download failed.")
             raise typer.Exit(1)
         content = clean_subtitles(resp.text)
 
     if not content:
-        console.print("[red]Error:[/red] Subtitle content is empty after processing.")
+        err_console.print("[red]Error:[/red] Subtitle content is empty after processing.")
         raise typer.Exit(1)
 
     cache_file.write_text(content)
-    console.print(f"[dim]Subtitles cached[/dim]")
+    err_console.print(f"[dim]Subtitles cached[/dim]")
 
-    title = get_video_title(url)
+    title = info.get("title") or ""
     if title:
         title_file.write_text(title)
 
@@ -201,35 +260,40 @@ def main(
     check_dependencies()
 
     if not question and not text_only and not template:
-        console.print("[dim]No question provided — switching to --text-only mode.[/dim]")
+        err_console.print("[dim]No question provided — switching to --text-only mode.[/dim]")
         text_only = True
 
     url = normalize_url(url)
 
-    with Status("Getting video ID...", console=console):
+    with Status("Getting video ID...", console=err_console):
         video_id = get_video_id(url)
 
     content, title = load_subtitles(url, video_id, no_cache=no_cache)
 
     if len(content) < 100:
-        console.print("[yellow]Warning:[/yellow] Subtitles seem unusually short. Results may be inaccurate.")
+        err_console.print("[yellow]Warning:[/yellow] Subtitles seem unusually short. Results may be inaccurate.")
 
     # Save subtitles to file if requested
     if sub_file:
         if sub_file.exists():
             overwrite = typer.confirm(f"{sub_file} already exists. Overwrite?")
             if not overwrite:
-                console.print("Cancelled.")
+                err_console.print("Cancelled.")
                 raise typer.Exit(0)
         sub_file.write_text(content)
-        console.print(f"[green]Subtitles saved to {sub_file}[/green]")
+        err_console.print(f"[green]Subtitles saved to {sub_file}[/green]")
 
     if text_only:
-        console.print(content)
+        # raw write: no Rich wrapping/truncation to terminal width, so the
+        # transcript survives pipes and redirects byte-for-byte.
+        sys.stdout.write(content + "\n")
         return
 
     # LLM processing
-    system_parts = ["You are a helpful assistant that answers questions about YouTube videos."]
+    system_parts = [
+        "You are a helpful assistant that answers questions about YouTube videos.",
+        "Where relevant (not for every sentence), include the video timestamp in format M:SS or H:MM:SS so the user can verify.",
+    ]
     if language:
         system_parts.append(f"Reply in {language}.")
     if title:
@@ -239,17 +303,17 @@ def main(
     full_prompt = f"{content}\n\n{question}"
 
     if debug:
-        console.print(Panel(f"[bold]System prompt (first 200 chars):[/bold]\n{system_prompt[:200]}...", title="DEBUG"))
-        console.print(Panel(f"[bold]Prompt (first 200 chars):[/bold]\n{full_prompt[:200]}...", title="DEBUG"))
+        err_console.print(Panel(f"[bold]System prompt (first 200 chars):[/bold]\n{system_prompt[:200]}...", title="DEBUG"))
+        err_console.print(Panel(f"[bold]Prompt (first 200 chars):[/bold]\n{full_prompt[:200]}...", title="DEBUG"))
 
     if title:
-        console.print(Panel(f"[bold]{title}[/bold]", subtitle=url, style="blue"))
+        err_console.print(Panel(f"[bold]{title}[/bold]", subtitle=url, style="blue"))
 
-    console.print()
+    err_console.print()
 
     # Build llm CLI command — uses system llm with all user plugins/models
     if not shutil.which("llm"):
-        console.print("[red]Error:[/red] llm is not installed or not in PATH.")
+        err_console.print("[red]Error:[/red] llm is not installed or not in PATH.")
         raise typer.Exit(1)
 
     if template:
@@ -273,16 +337,17 @@ def main(
         for chunk in iter(lambda: process.stdout.read(64), ""):
             full_text += chunk
             live.update(Markdown(full_text))
-
-    process.wait()
-    if process.returncode != 0:
-        err = process.stderr.read()
-        console.print(f"[red]Error:[/red] llm failed. {err}")
-        raise typer.Exit(1)
+        process.wait()
+        if process.returncode != 0:
+            err = process.stderr.read()
+            err_console.print(f"[red]Error:[/red] llm failed. {err}")
+            raise typer.Exit(1)
+        full_text = linkify_timestamps(full_text, video_id)
+        live.update(Markdown(full_text))
 
     if output:
         output.write_text(full_text)
-        console.print(f"[green]Response saved to {output}[/green]")
+        err_console.print(f"[green]Response saved to {output}[/green]")
 
 
 if __name__ == "__main__":

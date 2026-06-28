@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vq"
-version = "0.1.0"
+version = "0.1.2"
 description = "Video questions: answer questions about YouTube videos with LLM"
 requires-python = ">=3.10"
 dependencies = [

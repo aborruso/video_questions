@@ -31,7 +31,7 @@ make check_dependencies
 make uninstall
 
 # Run directly from repo
-.venv/bin/qv <URL> <question>
+.venv/bin/vq <URL> <question>
 ```
 
 ## Script Architecture
