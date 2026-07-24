@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-07-24 (4)
+
+- **`RELEASING.md`**: procedura di riferimento per release/subrelease (SemVer, bump `pyproject.toml`, LOG, reinstall+verifica, `uv build`, commit, `twine check`/`upload`, **tag `vX.Y.Z` + `gh release create`** con artefatti). Aggiunto il release tagging su GitHub al flusso.
+
 ## 2026-07-24 (3)
 
 - **Fix diagnostica YouTube (0.2.1)**: `yt-dlp` recente + YouTube richiedono un runtime JS per risolvere una "challenge"; senza, `yt-dlp` restituiva il fuorviante `This video is not available` per video validi (bloccava `vq`). `get_info()` ora rilancia lo **stderr di yt-dlp** sotto l'errore, così la causa reale è visibile. README: nuova sezione "YouTube: keep yt-dlp current + JS runtime" (upgrade yt-dlp, install `deno`, config globale `--js-runtimes` + `--remote-components ejs:github`). Ambiente utente sistemato: yt-dlp 2026.3.17→2026.7.4, deno installato in `~/.deno/bin`, config `~/.config/yt-dlp/config`, PATH deno in `.zshrc`.
