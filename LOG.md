@@ -1,5 +1,12 @@
 # LOG
 
+## 2026-07-24 (2)
+
+- **Rename distribuzione PyPI → `video-questions`** (il nome `vq` su PyPI è occupato da terzi). Comando invariato: resta `vq`. Bump a **0.2.0**. `pyproject.toml`: `name`, `version`, aggiunto `readme`. `main.py`: `version("video-questions")` (altrimenti `--version` si rompe col nuovo nome). Install: `uv tool install video-questions`.
+- **Check dipendenze all'avvio con requisiti espliciti**: `check_dependencies(required)` elenca in blocco i tool mancanti con hint d'installazione. `yt-dlp` verificato all'avvio; `llm` fail-fast prima del download (solo nelle modalità LLM, non in `--text-only`/`--metadata`).
+- **README**: installazione da PyPI (`uv tool install video-questions`) + alternative pipx/pip, sezione requisiti riscritta (yt-dlp + llm nel PATH), aggiunte opzioni `-i/--chat` e `--metadata`.
+- **Pulizia repo**: rimosso cruft locale (`.aider*`, `tmp.txt`, dir vuota `resources/`) e il checksum orfano tracciato `qv.sh.sha256` (referenziava `qv.sh` spostato in `scripts/`). `.gitignore` esteso: `build/`, `*.egg-info/`, `node_modules/`, `.claude/settings.local.json`.
+
 ## 2026-07-24
 
 - **Nuovo flag `-i/--chat`**: dopo la prima risposta LLM, apre una sessione REPL inline dove si continua a fare domande sullo stesso transcript. Ogni follow-up usa `llm -c` (continua la conversazione più recente), quindi il contesto del video resta agganciato senza catturare il `cid`. Uscita con invio vuoto, `exit`/`quit`, EOF o Ctrl-C. `-i` richiede una domanda iniziale; default e stdout pipe-safe invariati. Rifattorizzato lo streaming in `stream_llm()` (riusato da primo turno e follow-up); aggiunto `chat_loop()`.

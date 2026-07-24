@@ -6,14 +6,23 @@ Answer questions about YouTube videos using subtitles and an LLM.
 
 ## Requirements
 
-- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) — subtitle extraction
-- [`uv`](https://docs.astral.sh/uv/) — Python package manager
-- [`llm`](https://llm.datasette.io/) — LLM integration (installed automatically)
+`vq` shells out to two external CLIs that must be on your `PATH`:
 
-Install `yt-dlp` and `uv`:
+- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) — subtitle extraction (always required)
+- [`llm`](https://llm.datasette.io/) — LLM integration (required to answer questions; not needed for `--text-only`/`--metadata`)
+
+`vq` checks these at startup and, if one is missing, prints the missing tool with an install hint and exits.
+
+Install them as standalone tools (recommended, keeps your `llm` plugins/keys):
 
 ```bash
-pip3 install yt-dlp
+uv tool install yt-dlp
+uv tool install llm
+```
+
+You also need [`uv`](https://docs.astral.sh/uv/) to install `vq` itself:
+
+```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
@@ -38,22 +47,43 @@ For other providers, see the [LLM plugins directory](https://llm.datasette.io/en
 
 ## Installation
 
+**From PyPI (recommended)** — the package is published as `video-questions`; the installed command is `vq`:
+
 ```bash
-git clone https://github.com/aborruso/video_questions.git
-cd video_questions
-make install
+uv tool install video-questions
+```
+
+<details>
+<summary>Alternatives (pipx / pip)</summary>
+
+```bash
+pipx install video-questions
+# or, into the current environment:
+pip install video-questions
+```
+
+</details>
+
+**Upgrade:**
+
+```bash
+uv tool upgrade video-questions
 ```
 
 **Uninstall:**
 
 ```bash
-make uninstall
+uv tool uninstall video-questions
 ```
 
-**Development environment:**
+**From source:**
 
 ```bash
-make dev
+git clone https://github.com/aborruso/video_questions.git
+cd video_questions
+make install     # uv tool install .
+make dev         # editable dev environment
+make uninstall
 ```
 
 ## Verify Installation
@@ -90,8 +120,10 @@ vq [OPTIONS] URL [QUESTION]
 | `-m, --model TEXT` | LLM model to use (e.g. `gpt-4o`, `claude-3-5-sonnet-20241022`) |
 | `--sub PATH` | Save subtitles to file |
 | `-o, --output PATH` | Save LLM response to file |
+| `-i, --chat` | After the answer, stay in an interactive follow-up session (continues via `llm -c`) |
 | `--no-cache` | Skip cache, re-download subtitles |
 | `--text-only` | Print subtitles and exit (no LLM) |
+| `--metadata` | Print video metadata as one JSONL line and exit (no transcript) |
 | `--debug` | Show debug info (system prompt and prompt preview) |
 | `-V, --version` | Show version and exit |
 
@@ -100,6 +132,9 @@ vq [OPTIONS] URL [QUESTION]
 ```bash
 # Ask a question about a video
 vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What are the main topics?'
+
+# Ask, then keep asking interactively about the same video (-i / --chat)
+vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'Give me a summary' -i
 
 # Reply in Italian
 vq 'https://www.youtube.com/watch?v=OM6XIICm_qo' 'What is this about?' -p Italian

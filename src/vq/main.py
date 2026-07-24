@@ -19,7 +19,7 @@ from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.status import Status
 
-__version__ = version("vq")
+__version__ = version("video-questions")
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -41,11 +41,22 @@ CACHE_DIR = Path(tempfile.gettempdir()) / "qv_cache"
 CACHE_DAYS = 60
 
 
-def check_dependencies() -> None:
-    for dep in ["yt-dlp"]:
-        if not shutil.which(dep):
-            err_console.print(f"[red]Error:[/red] {dep} is required but not installed.")
-            raise typer.Exit(1)
+# External CLI tools vq relies on, with an install hint shown when missing.
+DEPENDENCIES = {
+    "yt-dlp": "uv tool install yt-dlp   (or: pipx install yt-dlp)",
+    "llm": "uv tool install llm      (docs: https://llm.datasette.io/)",
+}
+
+
+def check_dependencies(required: list[str]) -> None:
+    """Verify the given external tools are on PATH; on any miss, print all the
+    missing requirements at once (with install hints) and exit."""
+    missing = [d for d in required if not shutil.which(d)]
+    if missing:
+        err_console.print("[red]Missing required tools:[/red]")
+        for name in missing:
+            err_console.print(f"  • [bold]{name}[/bold] — install: {DEPENDENCIES[name]}")
+        raise typer.Exit(1)
 
 
 def normalize_url(url: str) -> str:
@@ -365,7 +376,7 @@ def main(
       vq https://youtu.be/ID --text-only > transcript.txt
       vq https://youtu.be/ID --metadata | jq .title
     """
-    check_dependencies()
+    check_dependencies(["yt-dlp"])
 
     url = normalize_url(url)
 
@@ -381,6 +392,11 @@ def main(
     if not question and not text_only and not template:
         err_console.print("[dim]No question provided — switching to --text-only mode.[/dim]")
         text_only = True
+
+    # In an LLM mode we need `llm`; check it now so a missing tool fails fast,
+    # before spending time downloading subtitles.
+    if not text_only:
+        check_dependencies(["llm"])
 
     with Status("Getting video ID...", console=err_console):
         video_id = get_video_id(url)
@@ -429,10 +445,6 @@ def main(
     err_console.print()
 
     # Build llm CLI command — uses system llm with all user plugins/models
-    if not shutil.which("llm"):
-        err_console.print("[red]Error:[/red] llm is not installed or not in PATH.")
-        raise typer.Exit(1)
-
     if template:
         cmd = ["llm", "-t", template]
     else:

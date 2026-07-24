@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 .venv/
 dist/
+build/
+*.egg-info/
+node_modules/
+.claude/settings.local.json
