@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-07-24
+
+- **Nuovo flag `-i/--chat`**: dopo la prima risposta LLM, apre una sessione REPL inline dove si continua a fare domande sullo stesso transcript. Ogni follow-up usa `llm -c` (continua la conversazione più recente), quindi il contesto del video resta agganciato senza catturare il `cid`. Uscita con invio vuoto, `exit`/`quit`, EOF o Ctrl-C. `-i` richiede una domanda iniziale; default e stdout pipe-safe invariati. Rifattorizzato lo streaming in `stream_llm()` (riusato da primo turno e follow-up); aggiunto `chat_loop()`.
+
 ## 2026-06-28 (2)
 
 - **Nuovo flag `--metadata`**: stampa i metadati del video come **una riga JSONL** su stdout (`id, url, title, description, channel, channel_id/url, duration, duration_string, upload_date, view/like/comment_count, language, tags, categories, thumbnail, subtitles, has_automatic_captions`) e termina, **senza scaricare il transcript** (solo `yt-dlp -j`). Rifattorizzato l'estrazione `info` in `get_info()` (riusato da `load_subtitles`); aggiunto `build_metadata()`.

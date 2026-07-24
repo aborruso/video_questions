@@ -16,6 +16,7 @@ from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich.status import Status
 
 __version__ = version("vq")
@@ -276,6 +277,52 @@ def load_subtitles(url: str, video_id: str, no_cache: bool = False) -> tuple[str
     return content, title
 
 
+def stream_llm(cmd: list[str], prompt_text: str, video_id: str) -> str:
+    """Run an `llm` subprocess, stream its stdout as live Markdown, return the
+    final (timestamp-linkified) text. `prompt_text` is fed on stdin."""
+    process = subprocess.Popen(
+        cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
+    try:
+        process.stdin.write(prompt_text)
+        process.stdin.close()
+    except BrokenPipeError:
+        pass
+
+    full_text = ""
+    with Live(Markdown(""), console=console, refresh_per_second=8) as live:
+        for chunk in iter(lambda: process.stdout.read(64), ""):
+            full_text += chunk
+            live.update(Markdown(full_text))
+        process.wait()
+        if process.returncode != 0:
+            err = process.stderr.read()
+            err_console.print(f"[red]Error:[/red] llm failed. {err}")
+            raise typer.Exit(1)
+        full_text = linkify_timestamps(full_text, video_id)
+        live.update(Markdown(full_text))
+    return full_text
+
+
+def chat_loop(video_id: str) -> None:
+    """Interactive follow-up REPL: each turn continues the most recent llm
+    conversation (`llm -c`), so the transcript context is retained."""
+    err_console.print(
+        "\n[dim]Chat interattiva — continua a chiedere sul video. "
+        "Invio vuoto, 'exit' o Ctrl-D per uscire.[/dim]"
+    )
+    while True:
+        try:
+            question = Prompt.ask("[bold cyan]›[/bold cyan]", console=err_console).strip()
+        except (EOFError, KeyboardInterrupt):
+            err_console.print()
+            break
+        if not question or question.lower() in {"exit", "quit", ":q"}:
+            break
+        err_console.print()
+        stream_llm(["llm", "-c"], question, video_id)
+
+
 @app.command()
 def main(
     url: str = typer.Argument(..., help="YouTube URL"),
@@ -285,6 +332,7 @@ def main(
     model: str = typer.Option(None, "-m", "--model", help="LLM model to use"),
     sub_file: Path = typer.Option(None, "--sub", help="Save subtitles to file"),
     output: Path = typer.Option(None, "-o", "--output", help="Save LLM response to file"),
+    chat: bool = typer.Option(False, "-i", "--chat", help="After the answer, stay in an interactive follow-up session (llm -c)"),
     no_cache: bool = typer.Option(False, "--no-cache", help="Skip cache, re-download subtitles"),
     text_only: bool = typer.Option(False, "--text-only", help="Print the cleaned transcript to stdout and exit (no LLM)"),
     metadata: bool = typer.Option(False, "--metadata", help="Print video metadata as one JSONL line (no transcript) and exit"),
@@ -302,6 +350,8 @@ def main(
 
     \b
     - default:     vq URL "your question"   -> LLM answer (Markdown)
+    - --chat/-i:   vq URL "question" -i      -> answer, then interactive
+                   follow-up session on the same transcript (llm -c)
     - no question: vq URL                   -> prints the cleaned transcript
     - --text-only: vq URL --text-only       -> cleaned transcript, raw text
     - --metadata:  vq URL --metadata        -> one JSONL line of video
@@ -311,6 +361,7 @@ def main(
     \b
     Examples:
       vq https://youtu.be/ID "what are the 3 main points?"
+      vq https://youtu.be/ID "summary" -i
       vq https://youtu.be/ID --text-only > transcript.txt
       vq https://youtu.be/ID --metadata | jq .title
     """
@@ -322,6 +373,10 @@ def main(
         info = get_info(url)
         sys.stdout.write(json.dumps(build_metadata(info, url), ensure_ascii=False) + "\n")
         return
+
+    if chat and not question:
+        err_console.print("[red]Error:[/red] --chat requires a question to start the session.")
+        raise typer.Exit(1)
 
     if not question and not text_only and not template:
         err_console.print("[dim]No question provided — switching to --text-only mode.[/dim]")
@@ -386,30 +441,14 @@ def main(
     if model:
         cmd = cmd[:1] + ["-m", model] + cmd[1:]
 
-    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    try:
-        process.stdin.write(full_prompt)
-        process.stdin.close()
-    except BrokenPipeError:
-        pass
-
-    # Stream stdout with live Markdown rendering
-    full_text = ""
-    with Live(Markdown(""), console=console, refresh_per_second=8) as live:
-        for chunk in iter(lambda: process.stdout.read(64), ""):
-            full_text += chunk
-            live.update(Markdown(full_text))
-        process.wait()
-        if process.returncode != 0:
-            err = process.stderr.read()
-            err_console.print(f"[red]Error:[/red] llm failed. {err}")
-            raise typer.Exit(1)
-        full_text = linkify_timestamps(full_text, video_id)
-        live.update(Markdown(full_text))
+    full_text = stream_llm(cmd, full_prompt, video_id)
 
     if output:
         output.write_text(full_text)
         err_console.print(f"[green]Response saved to {output}[/green]")
+
+    if chat:
+        chat_loop(video_id)
 
 
 if __name__ == "__main__":

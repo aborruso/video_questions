@@ -45,11 +45,13 @@ Key functions:
 - `get_subtitle_url()` - fallback strategy: original lang → English → any auto
 - `clean_subtitles()` - strips VTT formatting, HTML tags, timestamps
 - `load_subtitles()` - cache layer (60-day TTL in `/tmp/qv_cache/`)
+- `stream_llm()` - run an `llm` subprocess, stream stdout as live Markdown, return linkified text
+- `chat_loop()` - interactive follow-up REPL (`-i/--chat`), each turn continues via `llm -c`
 - `main()` - typer CLI entry point
 
 **Key implementation details:**
 
-1. **Argument parsing**: typer handles `url`, `question`, `-p/--language`, `-t/--template`, `-m/--model`, `--sub`, `-o/--output`, `--no-cache`, `--text-only`, `--metadata`, `--debug`, `-V/--version`
+1. **Argument parsing**: typer handles `url`, `question`, `-p/--language`, `-t/--template`, `-m/--model`, `--sub`, `-o/--output`, `-i/--chat`, `--no-cache`, `--text-only`, `--metadata`, `--debug`, `-V/--version`
 
 2. **Subtitle download strategy**: original audio lang → English → any auto-generated VTT
 
