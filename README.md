@@ -20,6 +20,38 @@ uv tool install yt-dlp
 uv tool install llm
 ```
 
+### YouTube: keep `yt-dlp` current + JS runtime
+
+Since 2026 YouTube requires `yt-dlp` to solve a JavaScript challenge, otherwise it
+returns a misleading `This video is not available` for videos that are perfectly
+fine. Two things are needed:
+
+1. A **recent** `yt-dlp` (older than ~90 days often breaks):
+
+   ```bash
+   uv tool upgrade yt-dlp   # or: pipx upgrade yt-dlp
+   ```
+
+2. A **JavaScript runtime** (`deno`) plus the EJS challenge-solver script:
+
+   ```bash
+   curl -fsSL https://deno.land/install.sh | sh   # installs deno to ~/.deno/bin
+   ```
+
+   Then enable it once, globally, in `~/.config/yt-dlp/config`:
+
+   ```
+   --js-runtimes deno:/home/YOU/.deno/bin/deno
+   --remote-components ejs:github
+   ```
+
+   (`--remote-components ejs:github` lets `yt-dlp` fetch the challenge solver on
+   demand. This affects every `yt-dlp` call on your machine, not just `vq`.)
+
+If `vq` prints `yt-dlp failed to fetch video info`, run the failing URL through
+`yt-dlp -j <URL>` directly — `vq` now echoes yt-dlp's own error underneath, which
+tells you the real cause.
+
 You also need [`uv`](https://docs.astral.sh/uv/) to install `vq` itself:
 
 ```bash

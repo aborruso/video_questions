@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-07-24 (3)
+
+- **Fix diagnostica YouTube (0.2.1)**: `yt-dlp` recente + YouTube richiedono un runtime JS per risolvere una "challenge"; senza, `yt-dlp` restituiva il fuorviante `This video is not available` per video validi (bloccava `vq`). `get_info()` ora rilancia lo **stderr di yt-dlp** sotto l'errore, così la causa reale è visibile. README: nuova sezione "YouTube: keep yt-dlp current + JS runtime" (upgrade yt-dlp, install `deno`, config globale `--js-runtimes` + `--remote-components ejs:github`). Ambiente utente sistemato: yt-dlp 2026.3.17→2026.7.4, deno installato in `~/.deno/bin`, config `~/.config/yt-dlp/config`, PATH deno in `.zshrc`.
+
 ## 2026-07-24 (2)
 
 - **Rename distribuzione PyPI → `video-questions`** (il nome `vq` su PyPI è occupato da terzi). Comando invariato: resta `vq`. Bump a **0.2.0**. `pyproject.toml`: `name`, `version`, aggiunto `readme`. `main.py`: `version("video-questions")` (altrimenti `--version` si rompe col nuovo nome). Install: `uv tool install video-questions`.

@@ -200,6 +200,11 @@ def get_info(url: str) -> dict:
         r = subprocess.run(["yt-dlp", "-j", url], capture_output=True, text=True)
         if r.returncode != 0:
             err_console.print("[red]Error:[/red] yt-dlp failed to fetch video info.")
+            # Surface yt-dlp's own diagnostics: the real cause (e.g. missing JS
+            # runtime, video unavailable, geo-block) lives on its stderr.
+            detail = (r.stderr or "").strip()
+            if detail:
+                err_console.print(f"[dim]{detail}[/dim]")
             raise typer.Exit(1)
         return json.loads(r.stdout)
 
