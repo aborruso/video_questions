@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`vq` (video questions) is a Python CLI that fetches YouTube video subtitles and processes them with LLM to answer questions. It uses `yt-dlp` for subtitle extraction, `requests` for download, the `llm` Python library for LLM integration, and `rich` for formatted output with live Markdown rendering.
+`vq` (video questions) is a Python CLI that fetches YouTube video subtitles and processes them with LLM to answer questions. It uses `yt-dlp` for subtitle extraction and download, the `llm` Python library for LLM integration, and `rich` for formatted output with live Markdown rendering.
 
 The legacy bash script is kept at `scripts/qv.sh` for reference.
 
@@ -13,7 +13,7 @@ The legacy bash script is kept at `scripts/qv.sh` for reference.
 - `yt-dlp` - YouTube subtitle downloader (external CLI)
 - `uv` - Python package manager and tool runner
 - `llm` (Python library) - LLM integration (Simon Willison, llm.datasette.io)
-- `typer`, `rich`, `requests` - installed automatically via `pyproject.toml`
+- `typer`, `rich` - installed automatically via `pyproject.toml`
 
 ## Installation & Testing
 

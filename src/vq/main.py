@@ -10,7 +10,6 @@ import time
 from importlib.metadata import version
 from pathlib import Path
 
-import requests
 import typer
 from rich.console import Console
 from rich.live import Live
@@ -145,54 +144,56 @@ def clean_subtitles(raw: str) -> str:
     return " ".join(lines)
 
 
-def _printed_url(r: subprocess.CompletedProcess) -> str | None:
-    # yt-dlp --print emits the literal "NA" for missing fields; treat it (and
-    # an empty/echoed template) as "no url" so we don't return a junk value.
-    out = r.stdout.strip()
-    if r.returncode != 0 or not out or out == "NA" or out.startswith("requested_subtitles."):
-        return None
-    return out
+def pick_subtitle_lang(info: dict) -> str | None:
+    """Choose the subtitle track to download, from the info dict only (no
+    extra yt-dlp calls). Priority: manual subs in the video language, auto
+    captions of the original audio, English (manual, then auto), then anything."""
+    subs = info.get("subtitles", {})
+    auto = info.get("automatic_captions", {})
+    lang = info.get("language") or ""
+    base = lang.split("-")[0]
+    candidates = [
+        (subs, lang), (subs, base),
+        (auto, f"{base}-orig") if base else (auto, ""),
+        (auto, lang), (auto, base),
+        (subs, "en"), (auto, "en-orig"), (auto, "en"),
+    ]
+    for table, key in candidates:
+        if key and key in table:
+            return key
+    for table in (subs, auto):
+        if table:
+            return sorted(table)[0]
+    return None
 
 
-def get_subtitle_url(url: str, info: dict) -> str:
-    auto_caps = info.get("automatic_captions", {})
+def download_subtitles(url: str, info: dict) -> str:
+    """Download one subtitle track with yt-dlp and return its raw text.
 
-    # 1. Original audio language
-    orig_langs = [k.replace("-orig", "") for k in auto_caps if k.endswith("-orig")]
-    for lang in orig_langs:
+    yt-dlp fetches the file with its own session: a plain HTTP GET on the
+    timedtext URL it prints gets rate-limited by YouTube (HTTP 429)."""
+    lang = pick_subtitle_lang(info)
+    if lang is None:
+        err_console.print("[red]Error:[/red] No subtitles available for this video.")
+        raise typer.Exit(1)
+    with tempfile.TemporaryDirectory() as tmp:
         r = subprocess.run(
             [
                 "yt-dlp", "-q", "--skip-download", "--convert-subs", "srt",
-                "--write-auto-sub", "--sub-langs", lang,
-                "--print", f"requested_subtitles.{lang}.url", url,
+                "--write-sub", "--write-auto-sub", "--sub-langs", lang,
+                "-o", f"{tmp}/sub", url,
             ],
             capture_output=True,
             text=True,
         )
-        if _printed_url(r):
-            return _printed_url(r)
-
-    # 2. English
-    r = subprocess.run(
-        [
-            "yt-dlp", "-q", "--skip-download", "--convert-subs", "srt",
-            "--write-sub", "--sub-langs", "en",
-            "--write-auto-sub", "--print", "requested_subtitles.en.url", url,
-        ],
-        capture_output=True,
-        text=True,
-    )
-    if _printed_url(r):
-        return _printed_url(r)
-
-    # 3. Any auto-generated VTT
-    for captions in auto_caps.values():
-        for cap in captions:
-            if cap.get("ext") == "vtt" and cap.get("url"):
-                return cap["url"]
-
-    err_console.print("[red]Error:[/red] No subtitles available for this video.")
-    raise typer.Exit(1)
+        files = sorted(Path(tmp).glob("sub.*"))
+        if r.returncode != 0 or not files:
+            err_console.print(f"[red]Error:[/red] Subtitle download failed (lang: {lang}).")
+            detail = (r.stderr or "").strip()
+            if detail:
+                err_console.print(f"[dim]{detail}[/dim]")
+            raise typer.Exit(1)
+        return files[0].read_text()
 
 
 def get_info(url: str) -> dict:
@@ -266,18 +267,8 @@ def load_subtitles(url: str, video_id: str, no_cache: bool = False) -> tuple[str
         cache_file = CACHE_DIR / f"{real_id}.txt"
         title_file = CACHE_DIR / f"{real_id}.title.txt"
 
-    subtitle_url = get_subtitle_url(url, info)
-
     with Status("Downloading subtitle file...", console=err_console):
-        try:
-            resp = requests.get(subtitle_url, timeout=30)
-        except requests.RequestException:
-            err_console.print("[red]Error:[/red] Subtitle download failed.")
-            raise typer.Exit(1)
-        if not resp.ok or not resp.text.strip():
-            err_console.print("[red]Error:[/red] Subtitle download failed.")
-            raise typer.Exit(1)
-        content = clean_subtitles(resp.text)
+        content = clean_subtitles(download_subtitles(url, info))
 
     if not content:
         err_console.print("[red]Error:[/red] Subtitle content is empty after processing.")

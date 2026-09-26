@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-09-26
+
+- **Fix download sottotitoli (0.2.2)**: `vq` ricavava l'URL `timedtext` con `yt-dlp --print` e lo scaricava con una `requests.get` nuda; YouTube risponde 429 a quella GET, quindi «Subtitle download failed» su video con sottotitoli regolari. Ora il file lo scarica `yt-dlp` stesso (`--write-sub --write-auto-sub --sub-langs <lang> -o <tmp>`), con la propria sessione. La lingua si sceglie dall'info dict già in mano (`pick_subtitle_lang`: sottotitoli manuali nella lingua del video → auto `<lang>-orig` → inglese → qualunque), senza più un `yt-dlp` per ogni traccia `-orig` (erano 21 chiamate su un video multi-audio). L'errore riporta la lingua e lo stderr di `yt-dlp`. Rimossa la dipendenza `requests`.
+
 ## 2026-07-24 (4)
 
 - **`RELEASING.md`**: procedura di riferimento per release/subrelease (SemVer, bump `pyproject.toml`, LOG, reinstall+verifica, `uv build`, commit, `twine check`/`upload`, **tag `vX.Y.Z` + `gh release create`** con artefatti). Aggiunto il release tagging su GitHub al flusso.

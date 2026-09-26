@@ -8,7 +8,7 @@ Answer questions about YouTube videos using subtitles and an LLM.
 
 `vq` shells out to two external CLIs that must be on your `PATH`:
 
-- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) — subtitle extraction (always required)
+- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) — subtitle extraction and download (always required)
 - [`llm`](https://llm.datasette.io/) — LLM integration (required to answer questions; not needed for `--text-only`/`--metadata`)
 
 `vq` checks these at startup and, if one is missing, prints the missing tool with an install hint and exits.
