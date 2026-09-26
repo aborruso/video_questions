@@ -15,7 +15,7 @@ La versione vive **solo** in `pyproject.toml`. `vq --version` la legge a runtime
 ## Prerequisiti (una tantum)
 
 - `uv` per build e install locale.
-- `twine` con token PyPI già in `~/.pypirc` (`[pypi]`, `username = __token__`).
+- `twine` >= 7.0 (`uv tool install twine`, `uv tool upgrade twine`) con token PyPI già in `~/.pypirc` (`[pypi]`, `username = __token__`). Le versioni precedenti rifiutano i pacchetti di `uv build` recente (`'2.5' is not a valid metadata version`).
 - `gh` autenticato su `github.com` (`gh auth status`).
 - Remote `origin` → `https://github.com/aborruso/video_questions.git`.
 
